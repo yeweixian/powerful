@@ -1,5 +1,6 @@
 package com.dangerye.powerful.communicate;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -49,7 +50,8 @@ public final class AsyncLoad<T> {
         try {
             return get(timeout);
         } catch (Exception e) {
-            System.out.println("Exception: " + e.getMessage());
+            System.out.println("Exception: " + Objects.toString(e, "") + ", " +
+                    "msg: " + Objects.toString(e.getMessage(), ""));
             return null;
         }
     }
