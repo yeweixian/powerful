@@ -3,6 +3,7 @@ package com.dangerye.powerful;
 import com.alibaba.fastjson.JSON;
 import com.dangerye.powerful.builder.CollectionBuilder;
 import com.dangerye.powerful.utils.CharFilterUtils;
+import com.dangerye.powerful.utils.Des3Utils;
 import org.junit.Test;
 
 import java.util.LinkedList;
@@ -66,5 +67,15 @@ public class UtilsTest {
                 .build();
         System.out.println(JSON.toJSONString(map1));
         System.out.println(JSON.toJSONString(map2));
+    }
+
+    @Test
+    public void testDes3Utils() throws Exception {
+        String text = "Test msg.";
+        String key = "C28J3CLT3O4U";
+        String secret = Des3Utils.encodeECB(text, key);
+        System.out.println("secret: " + secret);
+        String result = Des3Utils.decodeECB(secret, key);
+        System.out.println("result: " + result);
     }
 }
