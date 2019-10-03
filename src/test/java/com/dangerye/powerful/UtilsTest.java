@@ -5,6 +5,7 @@ import com.dangerye.powerful.builder.CollectionBuilder;
 import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
 import org.junit.Test;
+import org.springframework.util.DigestUtils;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -77,5 +78,7 @@ public class UtilsTest {
         System.out.println("secret: " + secret);
         String result = Des3Utils.decodeECB(secret, key);
         System.out.println("result: " + result);
+        String md5Result = DigestUtils.md5DigestAsHex(result.getBytes());
+        System.out.println("md5Result: " + md5Result);
     }
 }
