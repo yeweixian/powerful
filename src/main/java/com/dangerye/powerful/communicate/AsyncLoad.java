@@ -1,5 +1,8 @@
 package com.dangerye.powerful.communicate;
 
+import com.dangerye.powerful.utils.LogUtils;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -17,6 +20,7 @@ import java.util.concurrent.TimeoutException;
  * 相关博文：
  * https://blog.csdn.net/li12412414/article/details/54577034
  */
+@Slf4j
 public final class AsyncLoad<T> {
 
     private ExecutorService executorService;
@@ -50,8 +54,10 @@ public final class AsyncLoad<T> {
         try {
             return get(timeout);
         } catch (Exception e) {
-            System.out.println("Exception: " + Objects.toString(e, "") + ", " +
-                    "msg: " + Objects.toString(e.getMessage(), ""));
+            LogUtils.warn(log, "ASYNC_LOAD_FAIL_EVENT",
+                    "Exception:{}, msg:{}",
+                    Objects.toString(e, ""),
+                    Objects.toString(e.getMessage(), ""));
             return null;
         }
     }
