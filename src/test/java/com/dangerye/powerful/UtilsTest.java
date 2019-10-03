@@ -72,7 +72,7 @@ public class UtilsTest {
     @Test
     public void testDes3Utils() throws Exception {
         String text = "Test msg.";
-        String key = "C28J3CLT3O4U";
+        String key = "C28J3CLT3O4UC28J3CLT3O4U";
         String secret = Des3Utils.encodeECB(text, key);
         System.out.println("secret: " + secret);
         String result = Des3Utils.decodeECB(secret, key);
