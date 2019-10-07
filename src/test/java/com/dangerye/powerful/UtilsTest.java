@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.dangerye.powerful.builder.CollectionBuilder;
 import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
+import com.dangerye.powerful.utils.RsaUtils;
 import org.junit.Test;
 import org.springframework.util.DigestUtils;
 
@@ -80,5 +81,25 @@ public class UtilsTest {
         System.out.println("result: " + result);
         String md5Result = DigestUtils.md5DigestAsHex(result.getBytes());
         System.out.println("md5Result: " + md5Result);
+    }
+
+    @Test
+    public void testRsaUtils1() throws Exception {
+        Map<String, String> map = RsaUtils.getKeys();
+        String content = "{\"mobile\":\"12345678900\"}";
+        String secret = RsaUtils.publicEncrypt(content, map.get("publicKey"));
+        System.out.println(secret);
+        String result = RsaUtils.privateDecrypt(secret, map.get("privateKey"));
+        System.out.println(result);
+    }
+
+    @Test
+    public void testRsaUtils2() throws Exception {
+        Map<String, String> map = RsaUtils.getKeys();
+        String content = "{\"mobile\":\"12345678900\"}";
+        String secret = RsaUtils.privateEncrypt(content, map.get("privateKey"));
+        System.out.println(secret);
+        String result = RsaUtils.publicDecrypt(secret, map.get("publicKey"));
+        System.out.println(result);
     }
 }
