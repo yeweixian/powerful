@@ -89,6 +89,13 @@ public class UtilsTest {
     }
 
     @Test
+    public void testMD5Utils() {
+        String text = "Test msg.";
+        System.out.println(org.springframework.util.DigestUtils.md5DigestAsHex(text.getBytes()));
+        System.out.println(org.apache.commons.codec.digest.DigestUtils.md5Hex(text.getBytes()));
+    }
+
+    @Test
     public void testRsaUtils1() throws Exception {
         Map<String, String> map = RsaUtils.getKeys();
         String content = "{\"mobile\":\"12345678900\"}";
