@@ -6,6 +6,7 @@ import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
 import com.dangerye.powerful.utils.RsaUtils;
 import com.dangerye.powerful.utils.SecurityUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 
@@ -101,6 +102,16 @@ public class UtilsTest {
         String text = "Test msg.";
         System.out.println(org.springframework.util.DigestUtils.md5DigestAsHex(text.getBytes()));
         System.out.println(org.apache.commons.codec.digest.DigestUtils.md5Hex(text.getBytes()));
+    }
+
+    @Test
+    public void testSecurityUtils() {
+        String msg = "/Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home/bin/java";
+        String key = DigestUtils.md5Hex("danger.ye");
+        SecurityUtils.testBuilder(msg)
+                .encrypt(message -> SecurityUtils.encrypt(message, key))
+                .decrypt(ciphertext -> SecurityUtils.decrypt(ciphertext, key))
+                .test();
     }
 
     @Test
