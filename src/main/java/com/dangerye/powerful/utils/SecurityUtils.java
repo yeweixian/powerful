@@ -3,6 +3,9 @@ package com.dangerye.powerful.utils;
 import com.dangerye.powerful.builder.CollectionBuilder;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashMap;
@@ -10,6 +13,54 @@ import java.util.Map;
 
 @Slf4j
 public final class SecurityUtils {
+
+    public static String encrypt(final String message, final String secretKey) {
+        if (StringUtils.isBlank(message)) return null;
+        String randomStr = String.valueOf(RandomUtils.nextInt(10000, 99999));
+        char[] randomMD5 = DigestUtils.md5Hex(randomStr).toCharArray();
+        char[] secretMD5 = DigestUtils.md5Hex(secretKey).toCharArray();
+
+        StringBuilder encrypt1 = new StringBuilder();
+        char[] msgChars = message.toCharArray();
+        for (int i = 0; i < msgChars.length; i++) {
+            int k = i % 32;
+            encrypt1
+                    .append(randomMD5[k])
+                    .append((char) (msgChars[i] ^ randomMD5[k]));
+        }
+
+        StringBuilder encrypt2 = new StringBuilder();
+        msgChars = encrypt1.toString().toCharArray();
+        for (int i = 0; i < msgChars.length; i++) {
+            int k = i % 32;
+            encrypt2
+                    .append((char) (msgChars[i] ^ secretMD5[k]));
+        }
+
+        return Base64.encodeBase64String(encrypt2.toString().getBytes());
+    }
+
+    public static String decrypt(final String ciphertext, final String secretKey) {
+        if (StringUtils.isBlank(ciphertext)) return null;
+        char[] secretMD5 = DigestUtils.md5Hex(secretKey).toCharArray();
+
+        StringBuilder decrypt2 = new StringBuilder();
+        char[] msgChars = new String(Base64.decodeBase64(ciphertext)).toCharArray();
+        for (int i = 0; i < msgChars.length; i++) {
+            int k = i % 32;
+            decrypt2
+                    .append((char) (msgChars[i] ^ secretMD5[k]));
+        }
+
+        StringBuilder decrypt1 = new StringBuilder();
+        msgChars = decrypt2.toString().toCharArray();
+        for (int i = 0; i < msgChars.length; i += 2) {
+            decrypt1
+                    .append((char) (msgChars[i + 1] ^ msgChars[i]));
+        }
+
+        return decrypt1.toString();
+    }
 
     public static TestBuilder testBuilder(String message) {
         return new TestBuilder(message, null);

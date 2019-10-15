@@ -6,6 +6,7 @@ import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
 import com.dangerye.powerful.utils.RsaUtils;
 import com.dangerye.powerful.utils.SecurityUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 
 import java.util.LinkedList;
@@ -86,6 +87,13 @@ public class UtilsTest {
                 .encrypt((msg, map) -> Des3Utils.encodeECB(msg, Objects.toString(map.get("key"), key)))
                 .decrypt((msg, map) -> Des3Utils.decodeECB(msg, Objects.toString(map.get("key"), key)))
                 .test();
+    }
+
+    @Test
+    public void testRandomUtils() {
+        for (int i = 0; i < 10; i++) {
+            System.out.println("Random Int: " + RandomUtils.nextInt(10000, 99999));
+        }
     }
 
     @Test
