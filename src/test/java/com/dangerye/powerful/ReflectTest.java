@@ -5,6 +5,7 @@ import org.junit.Test;
 import javax.crypto.Cipher;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 
 public class ReflectTest {
@@ -46,9 +47,16 @@ public class ReflectTest {
 
         Field defaultPolicyInClass3 = class3.getDeclaredField("defaultPolicy");
         defaultPolicyInClass3.setAccessible(true);
+        System.out.println("defaultPolicyInClass3 modifiers val: " + defaultPolicyInClass3.getModifiers());
+        int newVal = defaultPolicyInClass3.getModifiers() & ~Modifier.FINAL;
+        System.out.println("defaultPolicyInClass3 modifiers newVal: " + newVal);
 
         Field modifiersInField = Field.class.getDeclaredField("modifiers");
-        defaultPolicyInClass3.setAccessible(true);
+        modifiersInField.setAccessible(true);
+        modifiersInField.setInt(defaultPolicyInClass3, newVal);
 
+        defaultPolicyInClass3.set(null, cryptoPermissions);
+
+        System.out.println("AES: " + Cipher.getMaxAllowedKeyLength("AES"));
     }
 }
