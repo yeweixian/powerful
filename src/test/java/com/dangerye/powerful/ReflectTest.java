@@ -15,47 +15,47 @@ public class ReflectTest {
 
         System.out.println("AES: " + Cipher.getMaxAllowedKeyLength("AES"));
 
-        Class class1 = Class.forName("javax.crypto.CryptoAllPermissionCollection");
-        System.out.println(class1.getName());
+        Class cryptoAllPermissionCollectionClass = Class.forName("javax.crypto.CryptoAllPermissionCollection");
+        System.out.println(cryptoAllPermissionCollectionClass.getName());
 
-        Constructor classConstructor1 = class1.getDeclaredConstructor();
-        classConstructor1.setAccessible(true);
-        Object cryptoAllPermissionCollection = classConstructor1.newInstance();
+        Constructor cryptoAllPermissionCollectionConstructor = cryptoAllPermissionCollectionClass.getDeclaredConstructor();
+        cryptoAllPermissionCollectionConstructor.setAccessible(true);
+        Object cryptoAllPermissionCollection = cryptoAllPermissionCollectionConstructor.newInstance();
 
-        Field all_allowedInClass1 = class1.getDeclaredField("all_allowed");
-        all_allowedInClass1.setAccessible(true);
-        System.out.println("all_allowed: " + all_allowedInClass1.getBoolean(cryptoAllPermissionCollection));
-        all_allowedInClass1.setBoolean(cryptoAllPermissionCollection, true);
-        System.out.println("all_allowed: " + all_allowedInClass1.getBoolean(cryptoAllPermissionCollection));
+        Field all_allowedInCryptoAllPermissionCollection = cryptoAllPermissionCollectionClass.getDeclaredField("all_allowed");
+        all_allowedInCryptoAllPermissionCollection.setAccessible(true);
+        System.out.println("all_allowed: " + all_allowedInCryptoAllPermissionCollection.getBoolean(cryptoAllPermissionCollection));
+        all_allowedInCryptoAllPermissionCollection.setBoolean(cryptoAllPermissionCollection, true);
+        System.out.println("all_allowed: " + all_allowedInCryptoAllPermissionCollection.getBoolean(cryptoAllPermissionCollection));
 
-        Class class2 = Class.forName("javax.crypto.CryptoPermissions");
-        System.out.println(class2.getName());
+        Class cryptoPermissionsClass = Class.forName("javax.crypto.CryptoPermissions");
+        System.out.println(cryptoPermissionsClass.getName());
 
-        Constructor classConstructor2 = class2.getDeclaredConstructor();
-        classConstructor2.setAccessible(true);
-        Object cryptoPermissions = classConstructor2.newInstance();
+        Constructor cryptoPermissionsConstructor = cryptoPermissionsClass.getDeclaredConstructor();
+        cryptoPermissionsConstructor.setAccessible(true);
+        Object cryptoPermissions = cryptoPermissionsConstructor.newInstance();
 
-        Field permsInClass2 = class2.getDeclaredField("perms");
-        permsInClass2.setAccessible(true);
-        Map map = (Map) permsInClass2.get(cryptoPermissions);
+        Field permsInCryptoPermissions = cryptoPermissionsClass.getDeclaredField("perms");
+        permsInCryptoPermissions.setAccessible(true);
+        Map map = (Map) permsInCryptoPermissions.get(cryptoPermissions);
         map.keySet().forEach(System.out::println);
         map.put("*", cryptoAllPermissionCollection);
         map.keySet().forEach(System.out::println);
 
-        Class class3 = Class.forName("javax.crypto.JceSecurityManager");
-        System.out.println(class3.getName());
+        Class jceSecurityManagerClass = Class.forName("javax.crypto.JceSecurityManager");
+        System.out.println(jceSecurityManagerClass.getName());
 
-        Field defaultPolicyInClass3 = class3.getDeclaredField("defaultPolicy");
-        defaultPolicyInClass3.setAccessible(true);
-        System.out.println("defaultPolicyInClass3 modifiers val: " + defaultPolicyInClass3.getModifiers());
-        int newVal = defaultPolicyInClass3.getModifiers() & ~Modifier.FINAL;
+        Field defaultPolicyInJceSecurityManager = jceSecurityManagerClass.getDeclaredField("defaultPolicy");
+        defaultPolicyInJceSecurityManager.setAccessible(true);
+        System.out.println("defaultPolicyInClass3 modifiers val: " + defaultPolicyInJceSecurityManager.getModifiers());
+        int newVal = defaultPolicyInJceSecurityManager.getModifiers() & ~Modifier.FINAL;
         System.out.println("defaultPolicyInClass3 modifiers newVal: " + newVal);
 
         Field modifiersInField = Field.class.getDeclaredField("modifiers");
         modifiersInField.setAccessible(true);
-        modifiersInField.setInt(defaultPolicyInClass3, newVal);
+        modifiersInField.setInt(defaultPolicyInJceSecurityManager, newVal);
 
-        defaultPolicyInClass3.set(null, cryptoPermissions);
+        defaultPolicyInJceSecurityManager.set(null, cryptoPermissions);
 
         System.out.println("AES: " + Cipher.getMaxAllowedKeyLength("AES"));
     }

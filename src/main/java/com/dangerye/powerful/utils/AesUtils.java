@@ -18,27 +18,38 @@ public class AesUtils {
             if ((newMaxKeyLength = Cipher.getMaxAllowedKeyLength("AES")) < 256) {
                 LogUtils.info(log, "AesUtils overrideKeyLength",
                         "run begin, overriding AES key-length permissions...");
-                Class c = Class.forName("javax.crypto.CryptoAllPermissionCollection");
-                Constructor con = c.getDeclaredConstructor();
-                con.setAccessible(true);
-                Object allPermissionCollection = con.newInstance();
-                Field f = c.getDeclaredField("all_allowed");
-                f.setAccessible(true);
-                f.setBoolean(allPermissionCollection, true);
-                c = Class.forName("javax.crypto.CryptoPermissions");
-                con = c.getDeclaredConstructor();
-                con.setAccessible(true);
-                Object allPermissions = con.newInstance();
-                f = c.getDeclaredField("perms");
-                f.setAccessible(true);
-                ((Map) f.get(allPermissions)).put("*", allPermissionCollection);
-                c = Class.forName("javax.crypto.JceSecurityManager");
-                f = c.getDeclaredField("defaultPolicy");
-                f.setAccessible(true);
-                Field mf = Field.class.getDeclaredField("modifiers");
-                mf.setAccessible(true);
-                mf.setInt(f, f.getModifiers() & ~Modifier.FINAL);
-                f.set(null, allPermissions);
+                Class cryptoAllPermissionCollectionClass = Class.forName("javax.crypto.CryptoAllPermissionCollection");
+
+                Constructor cryptoAllPermissionCollectionConstructor = cryptoAllPermissionCollectionClass.getDeclaredConstructor();
+                cryptoAllPermissionCollectionConstructor.setAccessible(true);
+                Object cryptoAllPermissionCollection = cryptoAllPermissionCollectionConstructor.newInstance();
+
+                Field all_allowedInCryptoAllPermissionCollection = cryptoAllPermissionCollectionClass.getDeclaredField("all_allowed");
+                all_allowedInCryptoAllPermissionCollection.setAccessible(true);
+                all_allowedInCryptoAllPermissionCollection.setBoolean(cryptoAllPermissionCollection, true);
+
+                Class cryptoPermissionsClass = Class.forName("javax.crypto.CryptoPermissions");
+
+                Constructor cryptoPermissionsConstructor = cryptoPermissionsClass.getDeclaredConstructor();
+                cryptoPermissionsConstructor.setAccessible(true);
+                Object cryptoPermissions = cryptoPermissionsConstructor.newInstance();
+
+                Field permsInCryptoPermissions = cryptoPermissionsClass.getDeclaredField("perms");
+                permsInCryptoPermissions.setAccessible(true);
+                ((Map) permsInCryptoPermissions.get(cryptoPermissions)).put("*", cryptoAllPermissionCollection);
+
+                Class jceSecurityManagerClass = Class.forName("javax.crypto.JceSecurityManager");
+
+                Field defaultPolicyInJceSecurityManager = jceSecurityManagerClass.getDeclaredField("defaultPolicy");
+                defaultPolicyInJceSecurityManager.setAccessible(true);
+                int modifiers = defaultPolicyInJceSecurityManager.getModifiers() & ~Modifier.FINAL;
+
+                Field modifiersInField = Field.class.getDeclaredField("modifiers");
+                modifiersInField.setAccessible(true);
+                modifiersInField.setInt(defaultPolicyInJceSecurityManager, modifiers);
+
+                defaultPolicyInJceSecurityManager.set(null, cryptoPermissions);
+
                 newMaxKeyLength = Cipher.getMaxAllowedKeyLength("AES");
                 LogUtils.info(log, "AesUtils overrideKeyLength",
                         "run end, overriding AES key-length permissions...");
