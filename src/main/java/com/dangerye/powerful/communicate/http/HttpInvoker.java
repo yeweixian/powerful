@@ -30,6 +30,27 @@ public final class HttpInvoker {
         }
     };
 
+    /**
+     * http
+     *
+     * @param httpClient       use org.apache.http.impl.client.HttpClients to build httpClient. nullAble
+     * @param httpRequest      use org.apache.http.client.methods.RequestBuilder to build request. notNull
+     * @param exceptionHandler nullAble
+     * @return http response body
+     */
+    public static String execute(CloseableHttpClient httpClient, HttpUriRequest httpRequest, ExceptionHandler exceptionHandler) {
+        return execute(httpClient, httpRequest, null, exceptionHandler);
+    }
+
+    /**
+     * http
+     *
+     * @param httpClient       use org.apache.http.impl.client.HttpClients to build httpClient. nullAble
+     * @param httpRequest      use org.apache.http.client.methods.RequestBuilder to build request. notNull
+     * @param responseHandler  nullAble
+     * @param exceptionHandler nullAble
+     * @return http response body
+     */
     public static String execute(CloseableHttpClient httpClient, HttpUriRequest httpRequest,
                                  ResponseHandler<String> responseHandler, ExceptionHandler exceptionHandler) {
         Args.notNull(httpRequest, "HTTP request");
