@@ -54,7 +54,7 @@ public final class AsyncLoad<T> {
         try {
             return get(timeout);
         } catch (Exception e) {
-            LogUtils.warn(log, "ASYNC_LOAD_FAIL_EVENT",
+            LogUtils.error(log, "ASYNC_LOAD_FAIL_EVENT",
                     "Exception:{}, msg:{}",
                     Objects.toString(e, ""),
                     Objects.toString(e.getMessage(), ""));
