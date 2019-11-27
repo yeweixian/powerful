@@ -6,6 +6,7 @@ import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
 import com.dangerye.powerful.utils.RsaUtils;
 import com.dangerye.powerful.utils.SecurityUtils;
+import com.google.gson.Gson;
 import lombok.Data;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -80,6 +81,10 @@ public class UtilsTest {
         testDemo.setName("dangerye");
         testDemo.setExtend(map1);
 
+        System.out.println((new Gson()).toJson(CollectionBuilder.mapBuilder()
+                .put("extend", testDemo.getExtend())
+                .put("user", testDemo)
+                .build()));
         System.out.println(JSON.toJSONString(CollectionBuilder.mapBuilder()
                 .put("extend", testDemo.getExtend())
                 .put("user", testDemo)
