@@ -1,6 +1,7 @@
 package com.dangerye.powerful;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.dangerye.powerful.builder.CollectionBuilder;
 import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
@@ -88,7 +89,7 @@ public class UtilsTest {
         System.out.println(JSON.toJSONString(CollectionBuilder.mapBuilder()
                 .put("extend", testDemo.getExtend())
                 .put("user", testDemo)
-                .build()));
+                .build(), SerializerFeature.DisableCircularReferenceDetect));
     }
 
     @Test
