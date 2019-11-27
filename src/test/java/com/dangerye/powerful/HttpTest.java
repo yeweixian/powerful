@@ -15,4 +15,17 @@ public class HttpTest {
         String resp = HttpInvoker.execute(null, request, null);
         System.out.println("resp" + resp);
     }
+
+    @Test
+    public void testHttpDome2() {
+        HttpUriRequest request = RequestBuilder
+                .get("https://hsreplay.net/analytics/query/list_decks_by_win_rate/")
+                .addParameter("GameType", "RANKED_STANDARD")
+                .addParameter("RankRange", "ALL")
+                .addParameter("Region", "ALL")
+                .addParameter("TimeRange", "LAST_30_DAYS")
+                .build();
+        String resp = HttpInvoker.execute(null, request, null);
+        System.out.println("resp" + resp);
+    }
 }
