@@ -6,6 +6,7 @@ import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
 import com.dangerye.powerful.utils.RsaUtils;
 import com.dangerye.powerful.utils.SecurityUtils;
+import lombok.Data;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
@@ -72,6 +73,17 @@ public class UtilsTest {
                 .build();
         System.out.println(JSON.toJSONString(map1));
         System.out.println(JSON.toJSONString(map2));
+
+        TestDemo testDemo = new TestDemo();
+        testDemo.setId(666);
+        testDemo.setAge(30);
+        testDemo.setName("dangerye");
+        testDemo.setExtend(map1);
+
+        System.out.println(JSON.toJSONString(CollectionBuilder.mapBuilder()
+                .put("extend", testDemo.getExtend())
+                .put("user", testDemo)
+                .build()));
     }
 
     @Test
@@ -140,5 +152,13 @@ public class UtilsTest {
                 .encrypt(message -> RsaUtils.privateEncrypt(message, map.get("privateKey")))
                 .decrypt(ciphertext -> RsaUtils.publicDecrypt(ciphertext, map.get("publicKey")))
                 .test();
+    }
+
+    @Data
+    private static class TestDemo {
+        private long id;
+        private String name;
+        private int age;
+        private Map<String, String> extend;
     }
 }
