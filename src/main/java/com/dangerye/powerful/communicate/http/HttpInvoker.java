@@ -6,6 +6,7 @@ import com.dangerye.powerful.utils.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -22,7 +23,7 @@ public final class HttpInvoker {
 
     private static final ResponseHandler<String> defaultResponseHandler = httpResponse -> {
         int status = httpResponse.getStatusLine().getStatusCode();
-        if (status >= 200 && status < 300) {
+        if (status >= HttpStatus.SC_OK && status < HttpStatus.SC_MULTIPLE_CHOICES) {
             HttpEntity entity = httpResponse.getEntity();
             return entity != null ? EntityUtils.toString(entity) : null;
         } else {
