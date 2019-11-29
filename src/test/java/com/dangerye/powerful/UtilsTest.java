@@ -13,6 +13,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 
+import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -95,7 +96,7 @@ public class UtilsTest {
     @Test
     public void testDes3Utils() {
         String text = "Test msg.";
-        String key = "abcdefghijklmnopqrstuvwxyz!@#$%";
+        String key = Base64.getEncoder().encodeToString("abcdefghijklmnopqrstuvwxyz!@#$%".getBytes());
 //        String secret = Des3Utils.encodeECB(text, key);
 //        System.out.println("secret: " + secret);
 //        String result = Des3Utils.decodeECB(secret, key);
