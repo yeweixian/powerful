@@ -37,6 +37,22 @@ public final class AsyncLoad<T> {
         return asyncLoad;
     }
 
+    public static <T> AsyncLoad<T> load(Callable<T> callable, String traceId, String requestIp) {
+        AsyncLoad<T> asyncLoad = new AsyncLoad<>();
+        asyncLoad.futureTask = new FutureTask<>(() -> {
+            try {
+                ThreadContext.init();
+                ThreadContext.setTraceId(traceId);
+                ThreadContext.setRequestIp(requestIp);
+                return callable.call();
+            } finally {
+                ThreadContext.close();
+            }
+        });
+        asyncLoad.executorService.execute(asyncLoad.futureTask);
+        return asyncLoad;
+    }
+
     public T get(long timeout) throws InterruptedException, ExecutionException, TimeoutException {
         T result;
         try {
