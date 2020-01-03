@@ -2,7 +2,24 @@ package com.dangerye.powerful.communicate;
 
 import org.junit.Test;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 public class AsyncLoadTest {
+
+    @Test
+    public void testCompletableFuture() {
+        CompletableFuture<Integer> cf = CompletableFuture.supplyAsync(() -> {
+            System.out.println("thread 1 start");
+            try {
+                TimeUnit.SECONDS.sleep(9);
+            } catch (InterruptedException ignored) {
+            }
+            System.out.println("thread 1 end");
+            return 1;
+        });
+        System.out.println(cf.getNow(null));
+    }
 
     @Test
     public void testAsyncLoad() throws InterruptedException {
