@@ -1,10 +1,12 @@
 package com.dangerye.powerful.communicate;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class AsyncLoadTest {
 
     @Test
