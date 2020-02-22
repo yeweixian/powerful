@@ -9,31 +9,6 @@ import java.util.Map;
 
 @Slf4j
 public final class CallHandler<R, T extends Throwable> {
-//
-//    public static <R, T extends Throwable> R handle(CallSupplier<R, T> callSupplier, String supplier,
-//                                                    Map<String, Object> paramMap,
-//                                                    ThrowableConsumer throwableConsumer,
-//                                                    boolean showInfoMsg) {
-//        try {
-//            R result = callSupplier.get();
-//            if (showInfoMsg) {
-//                LogUtils.info(log, "CallHandler_execute_event",
-//                        supplier + " paramMap:{}, result:{}",
-//                        JSON.toJSONString(paramMap, SerializerFeature.DisableCircularReferenceDetect),
-//                        JSON.toJSONString(result, SerializerFeature.DisableCircularReferenceDetect));
-//            }
-//            return result;
-//        } catch (Throwable t) {
-//            LogUtils.warn(log, "CallHandler_execute_fail",
-//                    supplier + " paramMap:{}",
-//                    JSON.toJSONString(paramMap, SerializerFeature.DisableCircularReferenceDetect),
-//                    t);
-//            if (throwableConsumer != null) {
-//                throwableConsumer.accept(t);
-//            }
-//            return null;
-//        }
-//    }
 
     private final CallSupplier<R, T> callSupplier;
     private final String supplier;
@@ -62,7 +37,26 @@ public final class CallHandler<R, T extends Throwable> {
         return new CallHandler<>(callSupplier, supplier, paramMap, showInfoMsg);
     }
 
-    public <E extends Throwable> R returnOrThrow(ThrowableFunction<? extends E> throwableFunction) throws E {
+    public R get() {
+        return get(null);
+    }
+
+    public R get(ThrowableConsumer throwableConsumer) {
+        try {
+            return callFunction.apply(callSupplier, supplier, paramMap, showInfoMsg);
+        } catch (Throwable throwable) {
+            LogUtils.warn(log, "CallHandler_execute_fail",
+                    supplier + " paramMap:{}",
+                    JSON.toJSONString(paramMap, SerializerFeature.DisableCircularReferenceDetect),
+                    throwable);
+            if (throwableConsumer != null) {
+                throwableConsumer.accept(throwable);
+            }
+            return null;
+        }
+    }
+
+    public <E extends Throwable> R getOrThrow(ThrowableFunction<? extends E> throwableFunction) throws E {
         try {
             return callFunction.apply(callSupplier, supplier, paramMap, showInfoMsg);
         } catch (Throwable throwable) {
