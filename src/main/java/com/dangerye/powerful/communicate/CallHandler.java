@@ -5,7 +5,10 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.dangerye.powerful.utils.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public final class CallHandler<R, T extends Throwable> {
@@ -66,6 +69,15 @@ public final class CallHandler<R, T extends Throwable> {
                     throwable);
             throw throwableFunction.apply(throwable);
         }
+    }
+
+    public <E extends Throwable> R getElseThrow(ThrowableFunction<? extends E> throwableFunction) throws E {
+        List<Throwable> throwableList = new ArrayList<>();
+        return Optional.ofNullable(get(throwableList::add))
+                .orElseThrow(() -> {
+                    Throwable throwable = throwableList.size() > 0 ? throwableList.get(0) : null;
+                    return throwableFunction.apply(throwable);
+                });
     }
 
     @FunctionalInterface
