@@ -9,34 +9,60 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
-public final class CallHandler<R, T extends Throwable> {
+public final class CallHandler<R> {
 
-    private final CallSupplier<R, T> callSupplier;
-    private final String supplier;
-    private final Map<String, Object> paramMap;
-    private final boolean showInfoMsg;
-    private final CallFunction<R, T> callFunction = (callSupplier, supplier, paramMap, showInfoMsg) -> {
-        R result = callSupplier.get();
-        if (showInfoMsg) {
-            LogUtils.info(log, "CallHandler_execute_event",
-                    supplier + " paramMap:{}, result:{}",
-                    JSON.toJSONString(paramMap, SerializerFeature.DisableCircularReferenceDetect),
-                    JSON.toJSONString(result, SerializerFeature.DisableCircularReferenceDetect));
-        }
-        return result;
-    };
+    private final Callable<R> codeFunction;
+    private final Function<Consumer<Exception>, R> getFunction;
+    private final ThrowFunction<R> throwFunction;
 
-    private CallHandler(CallSupplier<R, T> callSupplier, String supplier, Map<String, Object> paramMap, boolean showInfoMsg) {
-        this.callSupplier = callSupplier;
-        this.supplier = supplier;
-        this.paramMap = paramMap;
-        this.showInfoMsg = showInfoMsg;
+    private CallHandler(Callable<R> callSupplier, String supplier, Map<String, Object> paramMap, boolean showInfoMsg) {
+        this.codeFunction = () -> {
+            R result = callSupplier.call();
+            if (showInfoMsg) {
+                LogUtils.info(log, "CallHandler_execute_event",
+                        supplier + " paramMap:{}, result:{}",
+                        JSON.toJSONString(paramMap, SerializerFeature.DisableCircularReferenceDetect),
+                        JSON.toJSONString(result, SerializerFeature.DisableCircularReferenceDetect));
+            }
+            return result;
+        };
+        this.getFunction = consumer -> {
+            try {
+                return codeFunction.call();
+            } catch (Exception e) {
+                LogUtils.warn(log, "CallHandler_execute_fail",
+                        supplier + " paramMap:{}",
+                        JSON.toJSONString(paramMap, SerializerFeature.DisableCircularReferenceDetect),
+                        e);
+                if (consumer != null) {
+                    consumer.accept(e);
+                }
+                return null;
+            }
+        };
+        this.throwFunction = new ThrowFunction<R>() {
+            @Override
+            public <E extends Throwable> R apply(Function<Exception, ? extends E> function) throws E {
+                try {
+                    return codeFunction.call();
+                } catch (Exception e) {
+                    LogUtils.warn(log, "CallHandler_execute_fail",
+                            supplier + " paramMap:{}",
+                            JSON.toJSONString(paramMap, SerializerFeature.DisableCircularReferenceDetect),
+                            e);
+                    throw function.apply(e);
+                }
+            }
+        };
     }
 
-    public static <R, T extends Throwable> CallHandler<R, T> init(CallSupplier<R, T> callSupplier, String supplier,
-                                                                  Map<String, Object> paramMap, boolean showInfoMsg) {
+    public static <R> CallHandler<R> init(Callable<R> callSupplier, String supplier,
+                                          Map<String, Object> paramMap, boolean showInfoMsg) {
         return new CallHandler<>(callSupplier, supplier, paramMap, showInfoMsg);
     }
 
@@ -44,60 +70,25 @@ public final class CallHandler<R, T extends Throwable> {
         return get(null);
     }
 
-    public R get(ThrowableConsumer throwableConsumer) {
-        try {
-            return callFunction.apply(callSupplier, supplier, paramMap, showInfoMsg);
-        } catch (Throwable throwable) {
-            LogUtils.warn(log, "CallHandler_execute_fail",
-                    supplier + " paramMap:{}",
-                    JSON.toJSONString(paramMap, SerializerFeature.DisableCircularReferenceDetect),
-                    throwable);
-            if (throwableConsumer != null) {
-                throwableConsumer.accept(throwable);
-            }
-            return null;
-        }
+    public R get(Consumer<Exception> consumer) {
+        return getFunction.apply(consumer);
     }
 
-    public <E extends Throwable> R getOrThrow(ThrowableFunction<? extends E> throwableFunction) throws E {
-        try {
-            return callFunction.apply(callSupplier, supplier, paramMap, showInfoMsg);
-        } catch (Throwable throwable) {
-            LogUtils.warn(log, "CallHandler_execute_fail",
-                    supplier + " paramMap:{}",
-                    JSON.toJSONString(paramMap, SerializerFeature.DisableCircularReferenceDetect),
-                    throwable);
-            throw throwableFunction.apply(throwable);
-        }
+    public <E extends Throwable> R getOrThrow(Function<Exception, ? extends E> function) throws E {
+        return throwFunction.apply(function);
     }
 
-    public <E extends Throwable> R getElseThrow(ThrowableFunction<? extends E> throwableFunction) throws E {
-        List<Throwable> throwableList = new ArrayList<>();
-        return Optional.ofNullable(get(throwableList::add))
+    public <E extends Throwable> R getElseThrow(Function<Exception, ? extends E> function) throws E {
+        List<Exception> exceptionList = new ArrayList<>();
+        return Optional.ofNullable(get(exceptionList::add))
                 .orElseThrow(() -> {
-                    Throwable throwable = throwableList.size() > 0 ? throwableList.get(0) : null;
-                    return throwableFunction.apply(throwable);
+                    Exception exception = exceptionList.size() > 0 ? exceptionList.get(0) : null;
+                    return function.apply(exception);
                 });
     }
 
     @FunctionalInterface
-    private interface CallFunction<R, T extends Throwable> {
-        R apply(CallSupplier<R, T> callSupplier, String supplier,
-                Map<String, Object> paramMap, boolean showInfoMsg) throws T;
-    }
-
-    @FunctionalInterface
-    public interface CallSupplier<R, T extends Throwable> {
-        R get() throws T;
-    }
-
-    @FunctionalInterface
-    public interface ThrowableFunction<R extends Throwable> {
-        R apply(Throwable throwable);
-    }
-
-    @FunctionalInterface
-    public interface ThrowableConsumer {
-        void accept(Throwable throwable);
+    private interface ThrowFunction<R> {
+        <E extends Throwable> R apply(Function<Exception, ? extends E> function) throws E;
     }
 }
