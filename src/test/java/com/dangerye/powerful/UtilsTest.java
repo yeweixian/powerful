@@ -3,6 +3,7 @@ package com.dangerye.powerful;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.dangerye.powerful.builder.CollectionBuilder;
+import com.dangerye.powerful.collection.Ring;
 import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
 import com.dangerye.powerful.utils.RsaUtils;
@@ -30,6 +31,15 @@ public class UtilsTest {
         System.out.println(CharFilterUtils.filterChar(testString, " "));
         System.out.println(CharFilterUtils.filterChar(testString, ""));
         System.out.println(CharFilterUtils.filterChar(testString, null));
+    }
+
+    @Test
+    public void testRing() {
+        Ring<Integer> ring = new Ring<>();
+        for (int i = 0; i < 100; i++) {
+            ring.add(i + 1);
+        }
+        System.out.println("winner: " + Objects.toString(ring.kill(7), ""));
     }
 
     @Test
