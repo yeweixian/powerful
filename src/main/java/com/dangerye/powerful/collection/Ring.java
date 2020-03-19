@@ -1,6 +1,7 @@
 package com.dangerye.powerful.collection;
 
 import java.util.Collection;
+import java.util.Objects;
 
 public class Ring<E> {
 
@@ -14,6 +15,23 @@ public class Ring<E> {
     public Ring(Collection<? extends E> c) {
         this();
         addAll(c);
+    }
+
+    public E kill(int length) {
+        if (size == 0) return null;
+        if (size == 1) return unlink(first);
+        int count = 1;
+        Node<E> node = first;
+        while (size > 1) {
+            final Node<E> current = node;
+            node = current.next == null ? first : current.next;
+            if (count % length == 0) {
+                System.out.println("kill element: " + Objects.toString(unlink(current), "")
+                        + ", surplus: " + size);
+            }
+            count++;
+        }
+        return unlink(first);
     }
 
     public boolean add(E e) {
@@ -91,6 +109,30 @@ public class Ring<E> {
         else
             pred.next = newNode;
         size++;
+    }
+
+    private E unlink(Node<E> x) {
+        final E element = x.item;
+        final Node<E> next = x.next;
+        final Node<E> prev = x.prev;
+
+        if (prev == null) {
+            first = next;
+        } else {
+            prev.next = next;
+            x.prev = null;
+        }
+
+        if (next == null) {
+            last = prev;
+        } else {
+            next.prev = prev;
+            x.next = null;
+        }
+
+        x.item = null;
+        size--;
+        return element;
     }
 
     private Node<E> node(int index) {
