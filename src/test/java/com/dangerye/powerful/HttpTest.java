@@ -12,7 +12,7 @@ public class HttpTest {
         HttpUriRequest request = RequestBuilder
                 .get("https://api.hearthstonejson.com/v1/latest/zhCN/cards.collectible.json")
                 .build();
-        String resp = HttpInvoker.execute(null, request, null);
+        String resp = HttpInvoker.execute(null, request, true).get();
         System.out.println("resp" + resp);
     }
 
@@ -25,7 +25,7 @@ public class HttpTest {
                 .addParameter("Region", "ALL")
                 .addParameter("TimeRange", "LAST_30_DAYS")
                 .build();
-        String resp = HttpInvoker.execute(null, request, null);
+        String resp = HttpInvoker.execute(null, request, true).get();
         System.out.println("resp" + resp);
     }
 }
