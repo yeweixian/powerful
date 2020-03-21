@@ -25,6 +25,24 @@ import java.util.TreeSet;
 
 public class UtilsTest {
 
+    private static final int test1 = getRandomInt();
+    private static int test2 = getRandomInt();
+
+    private static int getRandomInt() {
+        return RandomUtils.nextInt(0, 10000);
+    }
+
+    @Test
+    public void testFinal() {
+        for (int i = 0; i < 100; i++) {
+            System.out.println("round: " + i
+                    + ", test1: " + test1
+                    + ", test2: " + test2
+                    + ", moth: " + getRandomInt()
+                    + ".");
+        }
+    }
+
     @Test
     public void testCharFilterUtils() {
         String testString = "823@#4423@dsFweRgsd^&*!~";
