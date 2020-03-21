@@ -23,23 +23,26 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 public final class AsyncLoad<T> {
 
-    private ExecutorService executorService;
-    private FutureTask<T> futureTask;
+    private final ExecutorService executorService;
+    private final FutureTask<T> futureTask;
 
-    private AsyncLoad() {
-        executorService = Executors.newSingleThreadExecutor();
+    private AsyncLoad(ExecutorService executorService, FutureTask<T> futureTask) {
+        this.executorService = executorService;
+        this.futureTask = futureTask;
+    }
+
+    private AsyncLoad(FutureTask<T> futureTask) {
+        this(Executors.newSingleThreadExecutor(), futureTask);
     }
 
     public static <T> AsyncLoad<T> load(Callable<T> callable) {
-        AsyncLoad<T> asyncLoad = new AsyncLoad<>();
-        asyncLoad.futureTask = new FutureTask<>(callable);
+        AsyncLoad<T> asyncLoad = new AsyncLoad<>(new FutureTask<>(callable));
         asyncLoad.executorService.execute(asyncLoad.futureTask);
         return asyncLoad;
     }
 
     public static <T> AsyncLoad<T> load(Callable<T> callable, String traceId, String requestIp) {
-        AsyncLoad<T> asyncLoad = new AsyncLoad<>();
-        asyncLoad.futureTask = new FutureTask<>(() -> {
+        AsyncLoad<T> asyncLoad = new AsyncLoad<>(new FutureTask<>(() -> {
             try {
                 ThreadContext.init();
                 ThreadContext.setTraceId(traceId);
@@ -48,7 +51,7 @@ public final class AsyncLoad<T> {
             } finally {
                 ThreadContext.close();
             }
-        });
+        }));
         asyncLoad.executorService.execute(asyncLoad.futureTask);
         return asyncLoad;
     }
