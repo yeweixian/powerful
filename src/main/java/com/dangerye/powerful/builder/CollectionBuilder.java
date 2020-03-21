@@ -3,34 +3,37 @@ package com.dangerye.powerful.builder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
-public class CollectionBuilder {
+public final class CollectionBuilder {
 
-    public static <T> SetBuilder<T> setBuilder() {
-        return setBuilder(new HashSet<>());
+    public static <T> SetBuilder<T> hashSetBuilder() {
+        return new SetBuilder<>(new HashSet<>());
     }
 
-    public static <T> SetBuilder<T> setBuilder(Set<T> set) {
-        return new SetBuilder<>(set);
+    public static <T> SetBuilder<T> treeSetBuilder() {
+        return new SetBuilder<>(new TreeSet<>());
     }
 
-    public static <T> ListBuilder<T> listBuilder() {
-        return listBuilder(new ArrayList<>());
+    public static <T> ListBuilder<T> arrayListBuilder() {
+        return new ListBuilder<>(new ArrayList<>());
     }
 
-    public static <T> ListBuilder<T> listBuilder(List<T> list) {
-        return new ListBuilder<>(list);
+    public static <T> ListBuilder<T> linkedListBuilder() {
+        return new ListBuilder<>(new LinkedList<>());
     }
 
-    public static <K, V> MapBuilder<K, V> mapBuilder() {
-        return mapBuilder(new HashMap<>());
+    public static <K, V> MapBuilder<K, V> hashMapBuilder() {
+        return new MapBuilder<>(new HashMap<>());
     }
 
-    public static <K, V> MapBuilder<K, V> mapBuilder(Map<K, V> map) {
-        return new MapBuilder<>(map);
+    public static <K, V> MapBuilder<K, V> treeMapBuilder() {
+        return new MapBuilder<>(new TreeMap<>());
     }
 
     public static class SetBuilder<T> {

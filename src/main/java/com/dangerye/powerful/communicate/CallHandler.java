@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -61,16 +62,22 @@ public final class CallHandler<R> {
         };
     }
 
-    public static <R> CallHandler<R> init(Callable<R> callSupplier, String supplier,
-                                          Map<String, Object> paramMap, boolean showInfoMsg) {
+    public static <R> CallHandler<R> init(Callable<R> callSupplier, String supplier, Map<String, Object> paramMap, boolean showInfoMsg) {
         return new CallHandler<>(callSupplier, supplier, paramMap, showInfoMsg);
+    }
+
+    public static <R, T extends Throwable, E extends Throwable> R getElseThrow(final Function<Consumer<T>, R> getFunc,
+                                                                               final Function<T, ? extends E> throwFunc) throws E {
+        final List<T> list = new ArrayList<>();
+        return Optional.ofNullable(getFunc.apply(list::add))
+                .orElseThrow(() -> throwFunc.apply(list.stream().filter(Objects::nonNull).findFirst().orElse(null)));
     }
 
     public R get() {
         return get(null);
     }
 
-    public R get(Consumer<Exception> consumer) {
+    private R get(Consumer<Exception> consumer) {
         return getFunction.apply(consumer);
     }
 
@@ -79,12 +86,7 @@ public final class CallHandler<R> {
     }
 
     public <E extends Throwable> R getElseThrow(Function<Exception, ? extends E> function) throws E {
-        List<Exception> exceptionList = new ArrayList<>();
-        return Optional.ofNullable(get(exceptionList::add))
-                .orElseThrow(() -> {
-                    Exception exception = exceptionList.size() > 0 ? exceptionList.get(0) : null;
-                    return function.apply(exception);
-                });
+        return getElseThrow(this::get, function);
     }
 
     @FunctionalInterface

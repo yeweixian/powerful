@@ -13,11 +13,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -42,7 +39,7 @@ public final class HttpInvoker {
         this.httpSupplier = client -> {
             ResponseHandler<String> handler = Optional.ofNullable(responseHandler).orElse(DEFAULTRESPONSEHANDLER);
             return CallHandler.init(() -> client.execute(httpRequest, handler),
-                    "HTTP_CALLED", CollectionBuilder.<String, Object>mapBuilder(new TreeMap<>())
+                    "HTTP_CALLED", CollectionBuilder.<String, Object>treeMapBuilder()
                             .put("method", Objects.toString(httpRequest.getMethod(), ""))
                             .put("uri", Objects.toString(httpRequest.getURI(), ""))
                             .build(), showInfoMsg)
@@ -73,11 +70,11 @@ public final class HttpInvoker {
     }
 
     public static HttpInvoker execute(HttpUriRequest httpRequest, boolean showInfoMsg) {
-        return execute(null, httpRequest, null, showInfoMsg);
+        return new HttpInvoker(null, httpRequest, null, showInfoMsg);
     }
 
     public static HttpInvoker execute(CloseableHttpClient httpClient, HttpUriRequest httpRequest, boolean showInfoMsg) {
-        return execute(httpClient, httpRequest, null, showInfoMsg);
+        return new HttpInvoker(httpClient, httpRequest, null, showInfoMsg);
     }
 
     public static HttpInvoker execute(CloseableHttpClient httpClient, HttpUriRequest httpRequest,
@@ -89,7 +86,7 @@ public final class HttpInvoker {
         return get(null);
     }
 
-    public String get(Consumer<Exception> consumer) {
+    private String get(Consumer<Exception> consumer) {
         return httpGetFunction.apply(consumer);
     }
 
@@ -98,12 +95,7 @@ public final class HttpInvoker {
     }
 
     public <E extends Throwable> String getElseThrow(Function<Exception, ? extends E> function) throws E {
-        List<Exception> exceptionList = new ArrayList<>();
-        return Optional.ofNullable(get(exceptionList::add))
-                .orElseThrow(() -> {
-                    Exception exception = exceptionList.size() > 0 ? exceptionList.get(0) : null;
-                    return function.apply(exception);
-                });
+        return CallHandler.getElseThrow(this::get, function);
     }
 
     @FunctionalInterface
