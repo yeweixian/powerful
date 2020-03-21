@@ -15,13 +15,10 @@ import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 
 import java.util.Base64;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 public class UtilsTest {
 
@@ -62,13 +59,13 @@ public class UtilsTest {
 
     @Test
     public void testCollectionBuilder() {
-        Set<String> set1 = CollectionBuilder.<String>setBuilder()
+        Set<String> set1 = CollectionBuilder.<String>hashSetBuilder()
                 .add("Hello")
                 .add("DangerYe")
                 .add("Test")
                 .add("Code")
                 .build();
-        Set<String> set2 = CollectionBuilder.<String>setBuilder(new TreeSet<>())
+        Set<String> set2 = CollectionBuilder.<String>treeSetBuilder()
                 .add("Hello")
                 .add("DangerYe")
                 .add("Test")
@@ -77,13 +74,13 @@ public class UtilsTest {
         System.out.println(JSON.toJSONString(set1));
         System.out.println(JSON.toJSONString(set2));
 
-        List<String> list1 = CollectionBuilder.<String>listBuilder()
+        List<String> list1 = CollectionBuilder.<String>arrayListBuilder()
                 .add("Hello")
                 .add("DangerYe")
                 .add("Test")
                 .add("Code")
                 .build();
-        List<String> list2 = CollectionBuilder.<String>listBuilder(new LinkedList<>())
+        List<String> list2 = CollectionBuilder.<String>linkedListBuilder()
                 .add("Hello")
                 .add("DangerYe")
                 .add("Test")
@@ -92,12 +89,12 @@ public class UtilsTest {
         System.out.println(JSON.toJSONString(list1));
         System.out.println(JSON.toJSONString(list2));
 
-        Map<String, String> map1 = CollectionBuilder.<String, String>mapBuilder()
+        Map<String, String> map1 = CollectionBuilder.<String, String>hashMapBuilder()
                 .put("5", "I")
                 .put("2", "Love")
                 .put("0", "You")
                 .build();
-        Map<String, String> map2 = CollectionBuilder.<String, String>mapBuilder(new TreeMap<>())
+        Map<String, String> map2 = CollectionBuilder.<String, String>treeMapBuilder()
                 .put("5", "I")
                 .put("2", "Love")
                 .put("0", "You")
@@ -111,11 +108,11 @@ public class UtilsTest {
         testDemo.setName("dangerye");
         testDemo.setExtend(map1);
 
-        System.out.println((new Gson()).toJson(CollectionBuilder.mapBuilder()
+        System.out.println((new Gson()).toJson(CollectionBuilder.hashMapBuilder()
                 .put("extend", testDemo.getExtend())
                 .put("user", testDemo)
                 .build()));
-        System.out.println(JSON.toJSONString(CollectionBuilder.mapBuilder()
+        System.out.println(JSON.toJSONString(CollectionBuilder.hashMapBuilder()
                 .put("extend", testDemo.getExtend())
                 .put("user", testDemo)
                 .build(), SerializerFeature.DisableCircularReferenceDetect));
@@ -131,7 +128,7 @@ public class UtilsTest {
 //        System.out.println("result: " + result);
 //        String md5Result = DigestUtils.md5DigestAsHex(result.getBytes());
 //        System.out.println("md5Result: " + md5Result);
-        SecurityUtils.testBuilder(text, CollectionBuilder.<String, Object>mapBuilder().put("key", key).build())
+        SecurityUtils.testBuilder(text, CollectionBuilder.<String, Object>hashMapBuilder().put("key", key).build())
                 .encrypt((msg, map) -> Des3Utils.encodeECB(msg, Objects.toString(map.get("key"), key)))
                 .decrypt((msg, map) -> Des3Utils.decodeECB(msg, Objects.toString(map.get("key"), key)))
                 .test();

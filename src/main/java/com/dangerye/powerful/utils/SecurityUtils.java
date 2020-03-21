@@ -1,14 +1,12 @@
 package com.dangerye.powerful.utils;
 
-import com.dangerye.powerful.builder.CollectionBuilder;
-import com.google.gson.Gson;
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Slf4j
@@ -140,15 +138,9 @@ public final class SecurityUtils {
         }
 
         public void test() {
-            Gson gson = new Gson();
-            Map<String, Object> testInfo = CollectionBuilder.<String, Object>mapBuilder(new LinkedHashMap<>())
-                    .put("extendMap", extendMap)
-                    .put("message", message)
-                    .put("ciphertext", ciphertext)
-                    .put("result", result)
-                    .build();
             LogUtils.info(log, "SecurityUtils Test",
-                    "testInfo:{}", gson.toJson(testInfo), this.exception);
+                    "extendMap:{}, message:{}, ciphertext:{}, result:{}",
+                    JSON.toJSONString(extendMap), message, ciphertext, result, exception);
         }
     }
 }
