@@ -9,7 +9,7 @@ public abstract class AbstractEvent implements Event {
     private int code;
     private String message;
 
-    public AbstractEvent(String business, String scene, int code, String message) {
+    protected AbstractEvent(String business, String scene, int code, String message) {
         this.business = business;
         this.scene = scene;
         this.code = code;
