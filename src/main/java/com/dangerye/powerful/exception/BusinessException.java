@@ -12,4 +12,16 @@ public class BusinessException extends RuntimeException {
         this.originalCode = sign.getOriginalCode();
         this.originalMsg = sign.getOriginalMsg();
     }
+
+    public int getCode() {
+        return code;
+    }
+
+    public String getOriginalCode() {
+        return originalCode;
+    }
+
+    public String getOriginalMsg() {
+        return originalMsg;
+    }
 }
