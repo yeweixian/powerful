@@ -14,4 +14,16 @@ public final class BusinessAssert {
                 .msg(msg)
                 .build());
     }
+
+    public static void handleEvent(Event event, Function<Event, String> dynamicMessageFunc,
+                                   String originalCode, String originalMsg) {
+        Args.notNull(event, "event");
+        String msg = dynamicMessageFunc.apply(event);
+        throw new BusinessException(Sign.builder()
+                .code(event.getCode())
+                .msg(msg)
+                .originalCode(originalCode)
+                .originalMsg(originalMsg)
+                .build());
+    }
 }
