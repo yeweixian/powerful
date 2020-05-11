@@ -1,5 +1,6 @@
 package com.dangerye.powerful.exception;
 
+import com.alibaba.fastjson.JSON;
 import org.junit.Test;
 
 public class ExceptionTest {
@@ -12,6 +13,6 @@ public class ExceptionTest {
                 .code(-1)
                 .message("create event.")
                 .build();
-        System.out.println(event);
+        System.out.println(JSON.toJSONString(event));
     }
 }
