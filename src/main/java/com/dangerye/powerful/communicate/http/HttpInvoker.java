@@ -47,7 +47,7 @@ public final class HttpInvoker {
         };
         this.httpGetFunction = consumer -> {
             Args.notNull(httpRequest, "HTTP request");
-            try (CloseableHttpClient client = Optional.ofNullable(httpClient).orElse(HttpClients.createDefault())) {
+            try (CloseableHttpClient client = Optional.ofNullable(httpClient).orElseGet(HttpClients::createDefault)) {
                 return httpSupplier.get(client);
             } catch (Exception e) {
                 if (consumer != null) {
@@ -60,7 +60,7 @@ public final class HttpInvoker {
             @Override
             public <E extends Throwable> String apply(Function<Exception, ? extends E> function) throws E {
                 Args.notNull(httpRequest, "HTTP request");
-                try (CloseableHttpClient client = Optional.ofNullable(httpClient).orElse(HttpClients.createDefault())) {
+                try (CloseableHttpClient client = Optional.ofNullable(httpClient).orElseGet(HttpClients::createDefault)) {
                     return httpSupplier.get(client);
                 } catch (Exception e) {
                     throw function.apply(e);
