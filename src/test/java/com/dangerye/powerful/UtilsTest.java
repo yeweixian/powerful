@@ -61,6 +61,7 @@ public class UtilsTest {
     @Test
     public void testSecret() {
         String str = "test test test";
+        int total1 = 0, total0 = 0;
         for (byte b : DigestUtils.md5Hex(str).getBytes(Charsets.UTF_8)) {
             int zoo = 0, one = 0;
             String bStr = Integer.toBinaryString(b);
@@ -77,7 +78,10 @@ public class UtilsTest {
                 zoo += 8 - bStr.length();
             }
             System.out.println(String.format("zoo:%d, one:%d", zoo, one));
+            total1 += one;
+            total0 += zoo;
         }
+        System.out.println(String.format("zoo:%d, one:%d", total0, total1));
     }
 
     @Test
