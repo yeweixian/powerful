@@ -63,6 +63,7 @@ public class UtilsTest {
         String str = "test test test";
         int i = 0;
         for (byte b : DigestUtils.md5Hex(str).getBytes(Charsets.UTF_8)) {
+            System.out.println(Integer.toBinaryString(b));
             i += b;
         }
         System.out.println(i);
