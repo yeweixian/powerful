@@ -65,9 +65,9 @@ public class UtilsTest {
             int zoo = 0, one = 0;
             String bStr = Integer.toBinaryString(b);
             for (char c : bStr.toCharArray()) {
-                if (Objects.equals(c, 0)) {
+                if (Objects.equals(c, '0')) {
                     zoo++;
-                } else if (Objects.equals(c, 1)) {
+                } else if (Objects.equals(c, '1')) {
                     one++;
                 } else {
                     throw new NullPointerException();
