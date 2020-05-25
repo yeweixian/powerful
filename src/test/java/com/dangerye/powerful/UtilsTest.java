@@ -61,12 +61,23 @@ public class UtilsTest {
     @Test
     public void testSecret() {
         String str = "test test test";
-        int i = 0;
         for (byte b : DigestUtils.md5Hex(str).getBytes(Charsets.UTF_8)) {
-            System.out.println(Integer.toBinaryString(b));
-            i += b;
+            int zoo = 0, one = 0;
+            String bStr = Integer.toBinaryString(b);
+            for (char c : bStr.toCharArray()) {
+                if (Objects.equals(c, 0)) {
+                    zoo++;
+                } else if (Objects.equals(c, 1)) {
+                    one++;
+                } else {
+                    throw new NullPointerException();
+                }
+            }
+            if (bStr.length() < 8) {
+                zoo += 8 - bStr.length();
+            }
+            System.out.println(String.format("zoo:%d, one:%d", zoo, one));
         }
-        System.out.println(i);
     }
 
     @Test
