@@ -10,6 +10,7 @@ import com.dangerye.powerful.utils.RsaUtils;
 import com.dangerye.powerful.utils.SecurityUtils;
 import com.google.gson.Gson;
 import lombok.Data;
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
@@ -55,6 +56,16 @@ public class UtilsTest {
             ring.add(i + 1);
         }
         System.out.println("winner: " + Objects.toString(ring.kill(7), ""));
+    }
+
+    @Test
+    public void testSecret() {
+        String str = "test test test";
+        int i = 0;
+        for (byte b : DigestUtils.md5Hex(str).getBytes(Charsets.UTF_8)) {
+            i += b;
+        }
+        System.out.println(i);
     }
 
     @Test
