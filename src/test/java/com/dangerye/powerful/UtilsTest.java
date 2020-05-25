@@ -77,6 +77,7 @@ public class UtilsTest {
             if (bStr.length() < 8) {
                 zoo += 8 - bStr.length();
             }
+            System.out.println(bStr);
             System.out.println(String.format("zoo:%d, one:%d", zoo, one));
             total1 += one;
             total0 += zoo;
