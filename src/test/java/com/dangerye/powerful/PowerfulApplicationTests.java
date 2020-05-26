@@ -14,7 +14,10 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @RunWith(SpringRunner.class)
@@ -38,9 +41,10 @@ public class PowerfulApplicationTests {
     }
 
     @Test
-    public void testSpringContextUtils() {
+    public void testSpringContextUtils() throws UnknownHostException {
         TestService service = SpringContextUtils.getBean(TestService.class);
         String test = service.getTestMsg("DangerYe");
-        LogUtils.info(log, "PRINT_EVENT", "testMsg:{}", test);
+        String hostName = Optional.ofNullable(InetAddress.getLocalHost()).map(InetAddress::getHostName).orElse(null);
+        LogUtils.info(log, "PRINT_EVENT", "testMsg:{}, hostName:{}", test, hostName);
     }
 }
