@@ -1,7 +1,10 @@
 package com.dangerye.powerful.utils;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.dangerye.powerful.communicate.ThreadContext;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -12,6 +15,14 @@ public class LogUtils {
                 " traceId:" + Objects.toString(ThreadContext.getTraceId(), "") +
                 ", requestIp:" + Objects.toString(ThreadContext.getRequestIp(), "") +
                 ", msg=" + msg;
+    }
+
+    public static void setLevel(String className, String level) {
+        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger l = lc.getLogger(className);
+        if (l != null) {
+            l.setLevel(Level.toLevel(level));
+        }
     }
 
     public static void debug(Logger logger, String eventName, String msg, Object... msgParams) {
