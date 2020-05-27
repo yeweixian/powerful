@@ -60,9 +60,10 @@ public class UtilsTest {
 
     @Test
     public void testSecret() {
-        String str = "test test test";
+        String str = "cy&sindy love 1314";
         int total1 = 0, total0 = 0;
-        for (byte b : DigestUtils.md5Hex(str).getBytes(Charsets.UTF_8)) {
+        String md5Str = DigestUtils.md5Hex(str);
+        for (byte b : md5Str.getBytes(Charsets.UTF_8)) {
             int zoo = 0, one = 0;
             String bStr = Integer.toBinaryString(b);
             for (char c : bStr.toCharArray()) {
