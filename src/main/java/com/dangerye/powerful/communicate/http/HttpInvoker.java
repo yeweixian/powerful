@@ -7,9 +7,10 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
@@ -17,9 +18,21 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Slf4j
 public final class HttpInvoker {
+
+    private static final Supplier<CloseableHttpClient> HTTP_CLIENT_SUPPLIER = () -> {
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(1000)
+                .setSocketTimeout(5000)
+                .setConnectTimeout(5000)
+                .build();
+        return HttpClientBuilder.create()
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+    };
 
     private static final ResponseHandler<String> DEFAULTRESPONSEHANDLER = httpResponse -> {
         int status = httpResponse.getStatusLine().getStatusCode();
@@ -47,7 +60,7 @@ public final class HttpInvoker {
         };
         this.httpGetFunction = consumer -> {
             Args.notNull(httpRequest, "HTTP request");
-            try (CloseableHttpClient client = Optional.ofNullable(httpClient).orElseGet(HttpClients::createDefault)) {
+            try (CloseableHttpClient client = Optional.ofNullable(httpClient).orElseGet(HTTP_CLIENT_SUPPLIER)) {
                 return httpSupplier.get(client);
             } catch (Exception e) {
                 if (consumer != null) {
@@ -60,7 +73,7 @@ public final class HttpInvoker {
             @Override
             public <E extends Throwable> String apply(Function<Exception, ? extends E> function) throws E {
                 Args.notNull(httpRequest, "HTTP request");
-                try (CloseableHttpClient client = Optional.ofNullable(httpClient).orElseGet(HttpClients::createDefault)) {
+                try (CloseableHttpClient client = Optional.ofNullable(httpClient).orElseGet(HTTP_CLIENT_SUPPLIER)) {
                     return httpSupplier.get(client);
                 } catch (Exception e) {
                     throw function.apply(e);
