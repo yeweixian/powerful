@@ -2,6 +2,9 @@ package com.dangerye.powerful.collection;
 
 import lombok.AllArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SortList<E> {
 
     private transient final int top;
@@ -16,6 +19,19 @@ public class SortList<E> {
             throw new IllegalArgumentException("compareFunction must not be null");
         this.top = top;
         this.compareFunction = compareFunction;
+    }
+
+    public List<E> toList() {
+        List<E> result = new ArrayList<>(top);
+        addToList(result, first);
+        return result;
+    }
+
+    private void addToList(final List<E> list, final Node<E> node) {
+        if (list == null) throw new NullPointerException();
+        if (node == null) return;
+        list.add(node.item);
+        addToList(list, node.next);
     }
 
     public synchronized void add(final E e) {

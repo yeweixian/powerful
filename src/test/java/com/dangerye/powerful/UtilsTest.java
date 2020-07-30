@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.dangerye.powerful.builder.CollectionBuilder;
 import com.dangerye.powerful.collection.Ring;
+import com.dangerye.powerful.collection.SortList;
 import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
 import com.dangerye.powerful.utils.RsaUtils;
@@ -15,6 +16,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +49,19 @@ public class UtilsTest {
         System.out.println(CharFilterUtils.filterChar(testString, " "));
         System.out.println(CharFilterUtils.filterChar(testString, ""));
         System.out.println(CharFilterUtils.filterChar(testString, null));
+    }
+
+    @Test
+    public void testSortList() {
+        List<Integer> randomList = new ArrayList<>();
+        SortList<Integer> sortList = new SortList<>(5, (nextItem, newItem) -> newItem.compareTo(nextItem) > 0);
+        for (int i = 0; i < 10; i++) {
+            int random = RandomUtils.nextInt(0, 10000);
+            randomList.add(random);
+            sortList.add(random);
+        }
+        System.out.println(JSON.toJSONString(randomList));
+        System.out.println(JSON.toJSONString(sortList.toList()));
     }
 
     @Test
