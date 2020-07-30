@@ -44,7 +44,7 @@ public class SortList<E> {
                 first = newNode;
                 newNode.next = nextNode;
             } else {
-                addNext(nextNode, e);
+                addNext(nextNode, newNode);
             }
         }
         count++;
@@ -61,8 +61,7 @@ public class SortList<E> {
         }
     }
 
-    private void addNext(final Node<E> node, final E e) {
-        final Node<E> newNode = new Node<>(e, null);
+    private void addNext(final Node<E> node, final Node<E> newNode) {
         final Node<E> nextNode = node.next;
         if (nextNode == null) {
             node.next = newNode;
@@ -71,7 +70,7 @@ public class SortList<E> {
                 node.next = newNode;
                 newNode.next = nextNode;
             } else {
-                addNext(nextNode, e);
+                addNext(nextNode, newNode);
             }
         }
     }
