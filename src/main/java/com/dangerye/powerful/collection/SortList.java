@@ -28,7 +28,6 @@ public class SortList<E> {
     }
 
     private void addToList(final List<E> list, final Node<E> node) {
-        if (list == null) throw new NullPointerException();
         if (node == null) return;
         list.add(node.item);
         addToList(list, node.next);
@@ -55,7 +54,6 @@ public class SortList<E> {
     }
 
     private void removeLast(final Node<E> node) {
-        if (node == null) throw new NullPointerException();
         if (node.next.next == null) {
             node.next = null;
         } else {
@@ -64,8 +62,6 @@ public class SortList<E> {
     }
 
     private void addNext(final Node<E> node, final E e) {
-        if (node == null) throw new NullPointerException();
-        if (e == null) throw new NullPointerException();
         final Node<E> newNode = new Node<>(e, null);
         final Node<E> nextNode = node.next;
         if (nextNode == null) {
