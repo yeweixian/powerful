@@ -21,6 +21,9 @@ public class ProxyTest {
         intf.doSomething();
         Intf proxy = (Intf) Proxy.newProxyInstance(Handler.class.getClassLoader(), intf.getClass().getInterfaces(), new Handler());
         proxy.doSomething();
+        Class<?>[] classes1 = Intf.class.getClasses();
+        Class<?>[] classes2 = Intf.class.getDeclaredClasses();
+        Class<?>[] classes3 = Intf.class.getInterfaces();
         for (Class<?> item : Intf.class.getClasses()) {
             System.out.println(item.getName());
         }
