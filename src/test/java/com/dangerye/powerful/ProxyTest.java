@@ -15,8 +15,23 @@ public class ProxyTest {
         intf.doSomething();
     }
 
+    @Test
+    public void test2() {
+        Intf intf = new Impl();
+        intf.doSomething();
+        Intf proxy = (Intf) Proxy.newProxyInstance(Handler.class.getClassLoader(), intf.getClass().getInterfaces(), new Handler());
+        proxy.doSomething();
+    }
+
     public interface Intf {
         void doSomething();
+    }
+
+    public static class Impl implements Intf {
+        @Override
+        public void doSomething() {
+            System.out.println("impl class run...");
+        }
     }
 
     public static class Handler implements InvocationHandler {
