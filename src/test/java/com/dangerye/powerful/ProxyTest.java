@@ -13,13 +13,13 @@ public class ProxyTest {
                 Intf.class.getInterfaces(),
                 (proxy, method, args) -> {
                     Type genericReturnType = method.getGenericReturnType();
-                    System.out.println("genericReturnType: " + genericReturnType);
+                    System.out.println("genericReturnType: " + genericReturnType.getTypeName());
                     return null;
                 });
         intf.doSomething();
     }
 
-    private interface Intf {
+    public interface Intf {
         void doSomething();
     }
 }
