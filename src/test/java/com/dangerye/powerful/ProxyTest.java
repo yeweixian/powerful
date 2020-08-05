@@ -52,6 +52,7 @@ public class ProxyTest {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             Type genericReturnType = method.getGenericReturnType();
+            System.out.println(genericReturnType.equals(Void.TYPE));
             System.out.println("genericReturnType: " + genericReturnType.getTypeName());
             return method.invoke(proxyClass, args);
         }
