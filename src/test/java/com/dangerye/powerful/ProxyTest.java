@@ -11,7 +11,7 @@ public class ProxyTest {
 
     @Test
     public void test1() {
-        Intf intf = (Intf) Proxy.newProxyInstance(Handler.class.getClassLoader(), new Class[]{Intf.class}, new Handler());
+        Intf intf = (Intf) Proxy.newProxyInstance(Handler.class.getClassLoader(), new Class[]{Intf.class}, new Handler(null));
         intf.doSomething();
     }
 
@@ -19,7 +19,7 @@ public class ProxyTest {
     public void test2() {
         Intf intf = new Impl();
         intf.doSomething();
-        Intf proxy = (Intf) Proxy.newProxyInstance(Handler.class.getClassLoader(), intf.getClass().getInterfaces(), new Handler());
+        Intf proxy = (Intf) Proxy.newProxyInstance(Handler.class.getClassLoader(), intf.getClass().getInterfaces(), new Handler(intf));
         proxy.doSomething();
         Class<?>[] classes1 = Intf.class.getClasses();
         Class<?>[] classes2 = Intf.class.getDeclaredClasses();
@@ -42,6 +42,13 @@ public class ProxyTest {
     }
 
     public static class Handler implements InvocationHandler {
+
+        private Intf proxyClass;
+
+        public Handler(Intf proxyClass) {
+            this.proxyClass = proxyClass;
+        }
+
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             Type genericReturnType = method.getGenericReturnType();
