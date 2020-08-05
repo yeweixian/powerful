@@ -24,6 +24,7 @@ public class ProxyTest {
         Class<?>[] classes1 = Intf.class.getClasses();
         Class<?>[] classes2 = Intf.class.getDeclaredClasses();
         Class<?>[] classes3 = Intf.class.getInterfaces();
+        Class<?>[] classes4 = intf.getClass().getInterfaces();
         for (Class<?> item : Intf.class.getClasses()) {
             System.out.println(item.getName());
         }
