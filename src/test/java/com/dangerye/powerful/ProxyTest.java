@@ -56,7 +56,7 @@ public class ProxyTest {
             System.out.println("genericReturnType: " + genericReturnType.getTypeName());
             System.out.println("------");
             System.out.println("method: " + method.getName());
-            System.out.println("classname: " + proxy.getClass().getName());
+            System.out.println("classname: " + method.getDeclaringClass().getSimpleName());
             System.out.println("------");
             return method.invoke(proxyClass, args);
         }
