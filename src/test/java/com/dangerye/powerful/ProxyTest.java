@@ -61,7 +61,16 @@ public class ProxyTest {
             System.out.println("------");
             System.out.println(JSON.toJSONString(args));
             System.out.println("------");
-            return method.invoke(proxyClass, args);
+            try {
+                return method.invoke(proxyClass, args);
+            } catch (Throwable t) {
+                if (t instanceof NullPointerException) {
+                    System.out.println("NullPointerException");
+                } else {
+                    System.out.println("OtherException");
+                }
+                throw t;
+            }
         }
     }
 }
