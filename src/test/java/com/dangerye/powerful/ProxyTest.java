@@ -54,6 +54,10 @@ public class ProxyTest {
             Type genericReturnType = method.getGenericReturnType();
             System.out.println(genericReturnType.equals(Void.TYPE));
             System.out.println("genericReturnType: " + genericReturnType.getTypeName());
+            System.out.println("------");
+            System.out.println("method: " + method.getName());
+            System.out.println("classname: " + proxy.getClass().getName());
+            System.out.println("------");
             return method.invoke(proxyClass, args);
         }
     }
