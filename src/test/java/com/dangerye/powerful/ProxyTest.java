@@ -1,5 +1,6 @@
 package com.dangerye.powerful;
 
+import com.alibaba.fastjson.JSON;
 import org.junit.Test;
 
 import java.lang.reflect.InvocationHandler;
@@ -12,15 +13,15 @@ public class ProxyTest {
     @Test
     public void test1() {
         Intf intf = (Intf) Proxy.newProxyInstance(Handler.class.getClassLoader(), new Class[]{Intf.class}, new Handler(null));
-        intf.doSomething();
+        intf.doSomething("now", "InTest1");
     }
 
     @Test
     public void test2() {
         Intf intf = new Impl();
-        intf.doSomething();
+        intf.doSomething("now", "InTest2");
         Intf proxy = (Intf) Proxy.newProxyInstance(Handler.class.getClassLoader(), intf.getClass().getInterfaces(), new Handler(intf));
-        proxy.doSomething();
+        proxy.doSomething("now", "InProxy");
         Class<?>[] classes1 = Intf.class.getClasses();
         Class<?>[] classes2 = Intf.class.getDeclaredClasses();
         Class<?>[] classes3 = Intf.class.getInterfaces();
@@ -31,12 +32,12 @@ public class ProxyTest {
     }
 
     public interface Intf {
-        void doSomething();
+        void doSomething(String when, String where);
     }
 
     public static class Impl implements Intf {
         @Override
-        public void doSomething() {
+        public void doSomething(String when, String where) {
             System.out.println("impl class run...");
         }
     }
@@ -57,6 +58,8 @@ public class ProxyTest {
             System.out.println("------");
             System.out.println("method: " + method.getName());
             System.out.println("classname: " + method.getDeclaringClass().getSimpleName());
+            System.out.println("------");
+            System.out.println(JSON.toJSONString(args));
             System.out.println("------");
             return method.invoke(proxyClass, args);
         }
