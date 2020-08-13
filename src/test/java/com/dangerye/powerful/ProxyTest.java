@@ -39,6 +39,7 @@ public class ProxyTest {
         @Override
         public void doSomething(String when, String where) {
             System.out.println("impl class run...");
+            throw new NullPointerException();
         }
     }
 
