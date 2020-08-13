@@ -21,7 +21,13 @@ public class ProxyTest {
 //        intf.doSomething("now", "InTest2");
         intf = (Intf) Proxy.newProxyInstance(Handler.class.getClassLoader(), intf.getClass().getInterfaces(), new Handler(intf));
         intf = (Intf) Proxy.newProxyInstance(Handler.class.getClassLoader(), intf.getClass().getInterfaces(), new Handler(intf));
-        intf.doSomething("now", "InProxy");
+        try {
+            intf.doSomething("now", "InProxy");
+        } catch (NullPointerException npe) {
+            System.out.println("------ NullPointerException");
+        } catch (Exception e) {
+            System.out.println("------ Exception");
+        }
         Class<?>[] classes1 = Intf.class.getClasses();
         Class<?>[] classes2 = Intf.class.getDeclaredClasses();
         Class<?>[] classes3 = Intf.class.getInterfaces();
@@ -68,6 +74,7 @@ public class ProxyTest {
                 Throwable cause = t.getCause();
                 if (cause instanceof NullPointerException) {
                     System.out.println("NullPointerException");
+                    throw cause;
                 } else {
                     System.out.println("OtherException");
                 }
