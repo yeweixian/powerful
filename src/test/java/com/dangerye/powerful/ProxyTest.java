@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import org.junit.Test;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -25,8 +26,10 @@ public class ProxyTest {
             intf.doSomething("now", "InProxy");
         } catch (NullPointerException npe) {
             System.out.println("------ NullPointerException");
+            npe.printStackTrace();
         } catch (Exception e) {
             System.out.println("------ Exception");
+            e.printStackTrace();
         }
         Class<?>[] classes1 = Intf.class.getClasses();
         Class<?>[] classes2 = Intf.class.getDeclaredClasses();
@@ -68,23 +71,27 @@ public class ProxyTest {
             System.out.println("------");
             System.out.println(JSON.toJSONString(args));
             System.out.println("------");
+//            try {
             try {
                 return method.invoke(proxyClass, args);
-            } catch (Throwable t) {
-                Throwable cause = t.getCause();
-                if (cause instanceof NullPointerException) {
-                    System.out.println("NullPointerException");
-                    throw cause;
-                } else {
-                    System.out.println("OtherException");
-                }
-                if (t instanceof NullPointerException) {
-                    System.out.println("NullPointerException");
-                } else {
-                    System.out.println("OtherException");
-                }
-                throw t;
+            } catch (InvocationTargetException ite) {
+                throw ite.getCause();
             }
+//            } catch (Throwable t) {
+//                Throwable cause = t.getCause();
+//                if (cause instanceof NullPointerException) {
+//                    System.out.println("NullPointerException");
+//                    throw cause;
+//                } else {
+//                    System.out.println("OtherException");
+//                }
+//                if (t instanceof NullPointerException) {
+//                    System.out.println("NullPointerException");
+//                } else {
+//                    System.out.println("OtherException");
+//                }
+//                throw t;
+//            }
         }
     }
 }
