@@ -28,4 +28,19 @@ public class HttpTest {
         String resp = HttpInvoker.execute(null, request, true).get();
         System.out.println("resp" + resp);
     }
+
+    @Test
+    public void testSayHello() throws InterruptedException {
+        // http://127.0.0.1:8080/user/sayHello?msg=dangerye
+        HttpUriRequest request = RequestBuilder
+                .get("http://127.0.0.1:8080/user/sayHello?msg=dangerye")
+                .build();
+        for (int i = 0; i < 3; i++) {
+            HttpInvoker.execute(null, request, true).get();
+            HttpInvoker.execute(null, request, true).get();
+            HttpInvoker.execute(null, request, true).get();
+            HttpInvoker.execute(null, request, true).get();
+            Thread.sleep(4000);
+        }
+    }
 }
