@@ -4,16 +4,19 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.dangerye.powerful.builder.CollectionBuilder;
 import com.dangerye.powerful.collection.Ring;
+import com.dangerye.powerful.collection.SortList;
 import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
 import com.dangerye.powerful.utils.RsaUtils;
 import com.dangerye.powerful.utils.SecurityUtils;
 import com.google.gson.Gson;
 import lombok.Data;
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -49,12 +52,53 @@ public class UtilsTest {
     }
 
     @Test
+    public void testSortList() {
+        List<Integer> randomList = new ArrayList<>();
+        SortList<Integer> sortList = new SortList<>(5, (nextItem, newItem) -> newItem.compareTo(nextItem) > 0);
+        for (int i = 0; i < 10; i++) {
+            int random = RandomUtils.nextInt(0, 10000);
+            randomList.add(random);
+            sortList.add(random);
+        }
+        System.out.println(JSON.toJSONString(randomList));
+        System.out.println(JSON.toJSONString(sortList.toList()));
+    }
+
+    @Test
     public void testRing() {
         Ring<Integer> ring = new Ring<>();
         for (int i = 0; i < 100; i++) {
             ring.add(i + 1);
         }
         System.out.println("winner: " + Objects.toString(ring.kill(7), ""));
+    }
+
+    @Test
+    public void testSecret() {
+        String str = "cy&sindy love 1314";
+        int total1 = 0, total0 = 0;
+        String md5Str = DigestUtils.md5Hex(str);
+        for (byte b : md5Str.getBytes(Charsets.UTF_8)) {
+            int zoo = 0, one = 0;
+            String bStr = Integer.toBinaryString(b);
+            for (char c : bStr.toCharArray()) {
+                if (Objects.equals(c, '0')) {
+                    zoo++;
+                } else if (Objects.equals(c, '1')) {
+                    one++;
+                } else {
+                    throw new NullPointerException();
+                }
+            }
+            if (bStr.length() < 8) {
+                zoo += 8 - bStr.length();
+            }
+            System.out.println(bStr);
+            System.out.println(String.format("zoo:%d, one:%d", zoo, one));
+            total1 += one;
+            total0 += zoo;
+        }
+        System.out.println(String.format("zoo:%d, one:%d", total0, total1));
     }
 
     @Test
