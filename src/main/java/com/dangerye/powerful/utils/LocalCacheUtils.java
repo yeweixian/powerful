@@ -26,6 +26,10 @@ public final class LocalCacheUtils<T> {
         initPool();
     }
 
+    public static <T> LocalCacheUtils<T> initCache(int initialCapacity) {
+        return new LocalCacheUtils<>(initialCapacity);
+    }
+
     private void initPool() {
         pool.scheduleWithFixedDelay(new NodeWork(), 5, 5, TimeUnit.SECONDS);
     }
