@@ -1,6 +1,7 @@
 package com.dangerye.powerful.utils;
 
 import java.util.PriorityQueue;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -24,6 +25,22 @@ public final class LocalCacheUtils<T> {
 
     private void initPool() {
         pool.scheduleWithFixedDelay(new NodeWork(), 5, 5, TimeUnit.SECONDS);
+    }
+
+    public void set(T value) {
+        String key = UUID.randomUUID().toString();
+        long expireTime = System.currentTimeMillis() + 60000;
+        Node<T> newNode = new Node<>(key, value, expireTime);
+        lock.lock();
+        try {
+            Node<T> old = cache.put(key, newNode);
+            queue.add(newNode);
+            if (old != null) {
+                queue.remove(old);
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     private static class Node<T> implements Comparable<Node<T>> {
