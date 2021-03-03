@@ -1,5 +1,7 @@
 package com.dangerye.powerful.utils;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -7,6 +9,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 public final class LocalCacheUtils<T> {
 
@@ -38,6 +41,20 @@ public final class LocalCacheUtils<T> {
             if (old != null) {
                 queue.remove(old);
             }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public List<T> getAll() {
+        long now = System.currentTimeMillis();
+        lock.lock();
+        try {
+            return cache.values().stream()
+                    .filter(Objects::nonNull)
+                    .filter(item -> item.expireTime > now)
+                    .map(item -> item.value)
+                    .collect(Collectors.toList());
         } finally {
             lock.unlock();
         }
