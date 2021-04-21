@@ -5,15 +5,13 @@ import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public final class LocalCacheUtils<T> {
-
-    private static final ScheduledExecutorService pool = new ScheduledThreadPoolExecutor(5);
 
     private final ReentrantLock lock;
     private final ConcurrentHashMap<String, Node<T>> cache;
@@ -23,20 +21,17 @@ public final class LocalCacheUtils<T> {
         lock = new ReentrantLock();
         cache = new ConcurrentHashMap<>(initialCapacity);
         queue = new PriorityQueue<>(initialCapacity);
-        initPool();
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        executor.scheduleWithFixedDelay(new NodeWork(), 5, 5, TimeUnit.SECONDS);
     }
 
     public static <T> LocalCacheUtils<T> initCache(int initialCapacity) {
         return new LocalCacheUtils<>(initialCapacity);
     }
 
-    private void initPool() {
-        pool.scheduleWithFixedDelay(new NodeWork(), 5, 5, TimeUnit.SECONDS);
-    }
-
-    public void set(T value) {
+    public void set(T value, long survivalTime) {
         String key = UUID.randomUUID().toString();
-        long expireTime = System.currentTimeMillis() + 60000;
+        long expireTime = System.currentTimeMillis() + survivalTime;
         Node<T> newNode = new Node<>(key, value, expireTime);
         lock.lock();
         try {
