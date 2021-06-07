@@ -35,7 +35,7 @@ public class GuavaCache extends ForwardingLoadingCache.SimpleForwardingLoadingCa
         final LoadingCacheKey<String> loadingCacheKey = new LoadingCacheKey<String>() {
             @Override
             public String generateRealKey() {
-                return "GuavaCache";
+                return "GuavaCache_" + msg;
             }
         };
         loadingCacheKey.putToContext("msg", msg);
