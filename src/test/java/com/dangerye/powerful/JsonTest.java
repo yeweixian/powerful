@@ -8,10 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,44 +39,13 @@ public class JsonTest {
                                 .build()))
                 .build();
         final String json = JSON.toJSONString(demo);
-        final Map<String, String> parse = JsonParser.<Map<String, String>>builder()
-                .setJsonString(json)
-                .parseObj();
+        final Map<String, String> parse = JSON.parseObject(json, new TypeReference<Map<String, String>>() {
+        }.getType());
         Optional.ofNullable(parse)
                 .ifPresent(map -> map.forEach((key, val) -> {
                     final String printString = "key:%s, val:%s";
                     System.out.println(String.format(printString, key, val));
                 }));
-    }
-
-    public static class JsonParser<T> {
-
-        private String jsonString;
-
-        private JsonParser() {
-        }
-
-        public static <T> JsonParser<T> builder() {
-            return new JsonParser<>();
-        }
-
-        public JsonParser<T> setJsonString(String jsonString) {
-            this.jsonString = jsonString;
-            return this;
-        }
-
-        public T parseObj() {
-            if (StringUtils.isBlank(jsonString)) {
-                return null;
-            }
-            try {
-                final Type type = new TypeReference<T>() {
-                }.getType();
-                return JSON.parseObject(jsonString, type);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("jsonString format exception");
-            }
-        }
     }
 
     @Data
