@@ -42,10 +42,30 @@ public class JsonTest {
         final Map<String, String> parse = JSON.parseObject(json, new TypeReference<Map<String, String>>() {
         }.getType());
         Optional.ofNullable(parse)
-                .ifPresent(map -> map.forEach((key, val) -> {
-                    final String printString = "key:%s, val:%s";
-                    System.out.println(String.format(printString, key, val));
-                }));
+                .ifPresent(map -> {
+                    map.forEach((key, val) -> {
+                        final String printString = "key:%s, val:%s";
+                        System.out.println(String.format(printString, key, val));
+                    });
+                    final List<String> array = JSON.parseObject(map.get("array"), new TypeReference<List<String>>() {
+                    }.getType());
+                    Optional.ofNullable(array)
+                            .ifPresent(list -> list.forEach(System.out::println));
+                    final Map<String, String> demoMap = JSON.parseObject(map.get("map"), new TypeReference<Map<String, String>>() {
+                    }.getType());
+                    Optional.ofNullable(demoMap)
+                            .ifPresent(objMap -> objMap.forEach((key, val) -> {
+                                final String printString = "key:%s, val:%s";
+                                System.out.println(String.format(printString, key, val));
+                            }));
+                    final List<Map<String, String>> mapList = JSON.parseObject(map.get("mapList"), new TypeReference<List<Map<String, String>>>() {
+                    }.getType());
+                    Optional.ofNullable(mapList)
+                            .ifPresent(list -> list.forEach(objMap -> objMap.forEach((key, val) -> {
+                                final String printString = "key:%s, val:%s";
+                                System.out.println(String.format(printString, key, val));
+                            })));
+                });
     }
 
     @Data
