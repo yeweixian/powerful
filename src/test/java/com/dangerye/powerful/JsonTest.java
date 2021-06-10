@@ -18,19 +18,6 @@ import java.util.Optional;
 
 public class JsonTest {
 
-    public static <T> T parseObj(String jsonString) {
-        if (StringUtils.isBlank(jsonString)) {
-            return null;
-        }
-        try {
-            final Type type = new TypeReference<T>() {
-            }.getType();
-            return JSON.parseObject(jsonString, type);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("jsonString format exception");
-        }
-    }
-
     @Test
     public void testParseJson() {
         final Demo demo = Demo.builder()
@@ -54,12 +41,44 @@ public class JsonTest {
                                 .build()))
                 .build();
         final String json = JSON.toJSONString(demo);
-        final Map<String, String> parse = JsonTest.parseObj(json);
+        final Map<String, String> parse = JsonParser.<Map<String, String>>builder()
+                .setJsonString(json)
+                .parseObj();
         Optional.ofNullable(parse)
                 .ifPresent(map -> map.forEach((key, val) -> {
                     final String printString = "key:%s, val:%s";
                     System.out.println(String.format(printString, key, val));
                 }));
+    }
+
+    public static class JsonParser<T> {
+
+        private String jsonString;
+
+        private JsonParser() {
+        }
+
+        public static <T> JsonParser<T> builder() {
+            return new JsonParser<>();
+        }
+
+        public JsonParser<T> setJsonString(String jsonString) {
+            this.jsonString = jsonString;
+            return this;
+        }
+
+        public T parseObj() {
+            if (StringUtils.isBlank(jsonString)) {
+                return null;
+            }
+            try {
+                final Type type = new TypeReference<T>() {
+                }.getType();
+                return JSON.parseObject(jsonString, type);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("jsonString format exception");
+            }
+        }
     }
 
     @Data
