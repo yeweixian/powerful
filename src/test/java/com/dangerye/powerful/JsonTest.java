@@ -10,11 +10,74 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.junit.Test;
 
+import java.io.FileInputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class JsonTest {
+
+    @Test
+    public void testApiExportJson() throws Exception {
+        final ImmutableMap<String, String> origin = ImmutableMap.<String, String>builder()
+                .put("type", "")
+                .put("source", "")
+                .put("key", "Access-Control-Allow-Origin")
+                .put("value", "https://*.vip.com,http://*.vip.com,https://*.vipglobal.hk,http://*.vipglobal.hk")
+                .put("target", "Header")
+                .build();
+        final ImmutableMap<String, String> getMethods = ImmutableMap.<String, String>builder()
+                .put("type", "")
+                .put("source", "")
+                .put("key", "Access-Control-Allow-Methods")
+                .put("value", "GET")
+                .put("target", "Header")
+                .build();
+        final ImmutableMap<String, String> postMethods = ImmutableMap.<String, String>builder()
+                .put("type", "")
+                .put("source", "")
+                .put("key", "Access-Control-Allow-Methods")
+                .put("value", "POST")
+                .put("target", "Header")
+                .build();
+        final ImmutableMap<String, String> headers = ImmutableMap.<String, String>builder()
+                .put("type", "")
+                .put("source", "")
+                .put("key", "Access-Control-Allow-Headers")
+                .put("value", "Origin,Accept,Referer,X-Requested-With,Content-Type,Authorization")
+                .put("target", "Header")
+                .build();
+        final ImmutableMap<String, String> credentials = ImmutableMap.<String, String>builder()
+                .put("type", "")
+                .put("source", "")
+                .put("key", "Access-Control-Allow-Credentials")
+                .put("value", "true")
+                .put("target", "Header")
+                .build();
+        final List<Object> getCorsResponseHeader = Lists.newArrayList(origin, getMethods, headers, credentials);
+        final List<Object> postCorsResponseHeader = Lists.newArrayList(origin, postMethods, headers, credentials);
+        final FileInputStream inputStream
+                = new FileInputStream("/Users/dangerye/Downloads/janus-mapi-user.vip.com#api_export.json");
+        final List<Map<String, Object>> mapList = JSON.parseObject(inputStream, new TypeReference<List<Map<String, Object>>>() {
+        }.getType());
+        for (Map<String, Object> objectMap : mapList) {
+            final Object signMethod = objectMap.get("signMethod");
+            if (Objects.equals(signMethod, 3)) {
+                final Object inboundMethod = objectMap.get("inboundMethod");
+                if (Objects.equals(inboundMethod, "GET")) {
+                    objectMap.put("cors", 1);
+                    objectMap.put("corsResponseHeader", getCorsResponseHeader);
+                } else if (Objects.equals(inboundMethod, "POST")) {
+                    objectMap.put("cors", 1);
+                    objectMap.put("corsResponseHeader", postCorsResponseHeader);
+                } else {
+                    throw new Exception("inboundMethod error");
+                }
+            }
+        }
+        System.out.println(JSON.toJSONString(mapList));
+    }
 
     @Test
     public void testParseJson() {
