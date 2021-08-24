@@ -2,6 +2,7 @@ package com.dangerye.powerful;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
@@ -76,7 +77,7 @@ public class JsonTest {
                 }
             }
         }
-        System.out.println(JSON.toJSONString(mapList));
+        System.out.println(JSON.toJSONString(mapList, SerializerFeature.DisableCircularReferenceDetect));
     }
 
     @Test
