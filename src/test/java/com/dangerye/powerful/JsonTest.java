@@ -1,6 +1,8 @@
 package com.dangerye.powerful;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.ImmutableMap;
@@ -76,6 +78,24 @@ public class JsonTest {
                     throw new Exception("inboundMethod error");
                 }
             }
+        }
+        System.out.println(JSON.toJSONString(mapList, SerializerFeature.DisableCircularReferenceDetect));
+    }
+
+    @Test
+    public void testExportJson() throws Exception {
+        final FileInputStream inputStream
+                = new FileInputStream("/Users/dangerye/Downloads/janus-mapi-auth.vip.com#api_export.json");
+        final List<Map<String, Object>> mapList = JSON.parseObject(inputStream, new TypeReference<List<Map<String, Object>>>() {
+        }.getType());
+        for (Map<String, Object> objectMap : mapList) {
+            final JSONArray serviceList = (JSONArray) objectMap.get("serviceList");
+            serviceList.forEach(item -> {
+                JSONObject obj = (JSONObject) item;
+                if (obj.containsKey("requestMapping")) {
+                    obj.put("requestMapping", Lists.newArrayList());
+                }
+            });
         }
         System.out.println(JSON.toJSONString(mapList, SerializerFeature.DisableCircularReferenceDetect));
     }
