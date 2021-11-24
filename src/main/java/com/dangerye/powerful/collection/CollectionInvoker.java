@@ -22,6 +22,10 @@ public final class CollectionInvoker<T, C> {
         this.filters = CollectionUtils.emptyIfNull(filters);
     }
 
+    public static <T, C> CollectionInvokerBuilder<T, C> builder() {
+        return new CollectionInvokerBuilder<>();
+    }
+
     public void invoke(Collection<T> collection) {
         Assert.notNull(collection, "collection must not be null");
         Assert.notNull(context, "context must not be null");
@@ -50,5 +54,33 @@ public final class CollectionInvoker<T, C> {
 
         // 后置处理
         void afterInvoke(Collection<T> collection, C context);
+    }
+
+    public static class CollectionInvokerBuilder<T, C> {
+        private C context;
+        private Collection<InvokerInterceptor<T, C>> interceptors;
+        private Collection<Predicate<T>> filters;
+
+        private CollectionInvokerBuilder() {
+        }
+
+        public CollectionInvokerBuilder<T, C> context(C context) {
+            this.context = context;
+            return this;
+        }
+
+        public CollectionInvokerBuilder<T, C> interceptors(Collection<InvokerInterceptor<T, C>> interceptors) {
+            this.interceptors = interceptors;
+            return this;
+        }
+
+        public CollectionInvokerBuilder<T, C> filters(Collection<Predicate<T>> filters) {
+            this.filters = filters;
+            return this;
+        }
+
+        public CollectionInvoker<T, C> build() {
+            return new CollectionInvoker<>(context, interceptors, filters);
+        }
     }
 }
