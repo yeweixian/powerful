@@ -56,6 +56,25 @@ public final class CollectionInvoker<T, C> {
         void afterInvoke(Collection<T> collection, C context);
     }
 
+    public static abstract class AbstractFilter<T, C> implements Predicate<T> {
+
+        private final C context;
+
+        public AbstractFilter(C context) {
+            this.context = context;
+        }
+
+        @Override
+        public boolean evaluate(T item) {
+            if (item == null) {
+                return false;
+            }
+            return doFilter(item, context);
+        }
+
+        protected abstract boolean doFilter(T item, C context);
+    }
+
     public static class CollectionInvokerBuilder<T, C> {
         private C context;
         private Collection<InvokerInterceptor<T, C>> interceptors;
