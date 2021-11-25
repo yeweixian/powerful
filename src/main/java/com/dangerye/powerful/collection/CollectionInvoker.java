@@ -69,10 +69,10 @@ public final class CollectionInvoker<T, C> {
 
     public static abstract class AbstractFilter<T, C> implements Predicate<T> {
 
-        private final C context;
+        private final ThreadLocal<C> contextThreadLocal = new ThreadLocal<>();
 
-        public AbstractFilter(C context) {
-            this.context = context;
+        public void setContext(C context) {
+            this.contextThreadLocal.set(context);
         }
 
         @Override
@@ -80,6 +80,7 @@ public final class CollectionInvoker<T, C> {
             if (item == null) {
                 return false;
             }
+            final C context = this.contextThreadLocal.get();
             return doFilter(item, context);
         }
 
