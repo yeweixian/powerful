@@ -71,8 +71,9 @@ public final class CollectionInvoker<T, C> {
 
         private final ThreadLocal<C> contextThreadLocal = new ThreadLocal<>();
 
-        public void setContext(C context) {
+        public AbstractFilter<T, C> setContext(C context) {
             this.contextThreadLocal.set(context);
+            return this;
         }
 
         @Override

@@ -32,7 +32,6 @@ public class CollectionInvokerTest {
                 return item.getValue() % 3 != 0;
             }
         };
-        predicate.setContext(context);
         CollectionInvoker.InvokerInterceptor<Item, Map<String, Object>> interceptor
                 = new CollectionInvoker.InvokerInterceptor<Item, Map<String, Object>>() {
             @Override
@@ -50,7 +49,7 @@ public class CollectionInvokerTest {
         CollectionInvoker<Item, Map<String, Object>> invoker = CollectionInvoker.<Item, Map<String, Object>>builder()
                 .context(context)
                 .interceptors(Lists.newArrayList(interceptor))
-                .filters(Lists.newArrayList(predicate))
+                .filters(Lists.newArrayList(predicate.setContext(context)))
                 .build();
         invoker.invoke(list);
         System.out.println("after invoke: " + JSON.toJSONString(list));
