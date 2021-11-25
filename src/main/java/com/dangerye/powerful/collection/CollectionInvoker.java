@@ -1,12 +1,16 @@
 package com.dangerye.powerful.collection;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.collections4.PredicateUtils;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public final class CollectionInvoker<T, C> {
 
@@ -24,6 +28,13 @@ public final class CollectionInvoker<T, C> {
 
     public static <T, C> CollectionInvokerBuilder<T, C> builder() {
         return new CollectionInvokerBuilder<>();
+    }
+
+    public static <T, R> List<R> changeList(List<T> list, Function<T, R> mapper) {
+        return ListUtils.emptyIfNull(list)
+                .stream().filter(Objects::nonNull)
+                .map(mapper).filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     public void invoke(Collection<T> collection) {
