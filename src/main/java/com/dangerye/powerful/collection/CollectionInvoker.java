@@ -77,11 +77,15 @@ public final class CollectionInvoker<T, C> {
 
         @Override
         public boolean evaluate(T item) {
-            if (item == null) {
-                return false;
+            try {
+                if (item == null) {
+                    return false;
+                }
+                final C context = this.contextThreadLocal.get();
+                return doFilter(item, context);
+            } finally {
+                this.contextThreadLocal.remove();
             }
-            final C context = this.contextThreadLocal.get();
-            return doFilter(item, context);
         }
 
         protected abstract boolean doFilter(T item, C context);
