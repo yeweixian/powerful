@@ -6,7 +6,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.Builder;
 import lombok.Data;
-import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 
@@ -27,12 +26,13 @@ public class CollectionInvokerTest {
         }
         System.out.println("before invoke: " + JSON.toJSONString(list));
         final HashMap<String, Object> context = Maps.newHashMap();
-        Predicate<Item> predicate = new CollectionInvoker.AbstractFilter<Item, Map<String, Object>>(context) {
+        CollectionInvoker.AbstractFilter<Item, Map<String, Object>> predicate = new CollectionInvoker.AbstractFilter<Item, Map<String, Object>>() {
             @Override
             protected boolean doFilter(Item item, Map<String, Object> context) {
                 return item.getValue() % 3 != 0;
             }
         };
+        predicate.setContext(context);
         CollectionInvoker.InvokerInterceptor<Item, Map<String, Object>> interceptor
                 = new CollectionInvoker.InvokerInterceptor<Item, Map<String, Object>>() {
             @Override
