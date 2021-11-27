@@ -12,21 +12,23 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CollectionInvokerTest {
 
     @Test
     public void testInvoker() {
-        final ArrayList<Item> list = Lists.newArrayList();
+        final ArrayList<Integer> integerList = Lists.newArrayList();
         for (int i = 0; i < 10; i++) {
-            list.add(Item.builder()
-                    .value(RandomUtils.nextInt(0, 10))
-                    .build());
+            integerList.add(RandomUtils.nextInt(0, 10));
         }
+        final List<Item> list = CollectionInvoker.changeList(integerList,
+                item -> Item.builder().value(item).build());
         System.out.println("before invoke: " + JSON.toJSONString(list));
         final HashMap<String, Object> context = Maps.newHashMap();
-        CollectionInvoker.AbstractFilter<Item, Map<String, Object>> predicate = new CollectionInvoker.AbstractFilter<Item, Map<String, Object>>() {
+        CollectionInvoker.AbstractFilter<Item, Map<String, Object>> predicate
+                = new CollectionInvoker.AbstractFilter<Item, Map<String, Object>>() {
             @Override
             protected boolean doFilter(Item item, Map<String, Object> context) {
                 return item.getValue() % 3 != 0;
@@ -49,7 +51,7 @@ public class CollectionInvokerTest {
         CollectionInvoker<Item, Map<String, Object>> invoker = CollectionInvoker.<Item, Map<String, Object>>builder()
                 .context(context)
                 .interceptors(Lists.newArrayList(interceptor))
-                .filters(Lists.newArrayList(predicate.setContext(context)))
+                .filters(Lists.newArrayList(predicate))
                 .build();
         invoker.invoke(list);
         System.out.println("after invoke: " + JSON.toJSONString(list));

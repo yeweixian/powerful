@@ -16,11 +16,11 @@ public final class CollectionInvoker<T, C> {
 
     private final C context;
     private final Collection<InvokerInterceptor<T, C>> interceptors;
-    private final Collection<Predicate<T>> filters;
+    private final Collection<AbstractFilter<T, C>> filters;
 
     private CollectionInvoker(C context,
                               Collection<InvokerInterceptor<T, C>> interceptors,
-                              Collection<Predicate<T>> filters) {
+                              Collection<AbstractFilter<T, C>> filters) {
         this.context = context;
         this.interceptors = CollectionUtils.emptyIfNull(interceptors);
         this.filters = CollectionUtils.emptyIfNull(filters);
@@ -42,9 +42,17 @@ public final class CollectionInvoker<T, C> {
         Assert.notNull(context, "context must not be null");
         // 前置处理（用于批量请求获取某结果）
         beforeInvoke(collection, context);
+        // filter 设置 所需 context
+        filters.stream().filter(Objects::nonNull)
+                .forEach(item -> item.setContext(context));
         // 单元素过滤处理；
-        final Predicate<T> allPredicate = PredicateUtils.allPredicate(filters);
-        CollectionUtils.filter(collection, allPredicate);
+        try {
+            final Predicate<T> allPredicate = PredicateUtils.allPredicate(filters);
+            CollectionUtils.filter(collection, allPredicate);
+        } finally {
+            filters.stream().filter(Objects::nonNull)
+                    .forEach(AbstractFilter::removeContext);
+        }
         // 后置处理
         afterInvoke(collection, context);
     }
@@ -71,22 +79,22 @@ public final class CollectionInvoker<T, C> {
 
         private final ThreadLocal<C> contextThreadLocal = new ThreadLocal<>();
 
-        public AbstractFilter<T, C> setContext(C context) {
+        private void setContext(C context) {
             this.contextThreadLocal.set(context);
-            return this;
+        }
+
+        private void removeContext() {
+            this.contextThreadLocal.remove();
         }
 
         @Override
         public boolean evaluate(T item) {
-            try {
-                if (item == null) {
-                    return false;
-                }
-                final C context = this.contextThreadLocal.get();
-                return doFilter(item, context);
-            } finally {
-                this.contextThreadLocal.remove();
+            if (item == null) {
+                return false;
             }
+            final C context = this.contextThreadLocal.get();
+            Assert.notNull(context, "context must not be null");
+            return doFilter(item, context);
         }
 
         protected abstract boolean doFilter(T item, C context);
@@ -95,7 +103,7 @@ public final class CollectionInvoker<T, C> {
     public static class CollectionInvokerBuilder<T, C> {
         private C context;
         private Collection<InvokerInterceptor<T, C>> interceptors;
-        private Collection<Predicate<T>> filters;
+        private Collection<AbstractFilter<T, C>> filters;
 
         private CollectionInvokerBuilder() {
         }
@@ -110,7 +118,7 @@ public final class CollectionInvoker<T, C> {
             return this;
         }
 
-        public CollectionInvokerBuilder<T, C> filters(Collection<Predicate<T>> filters) {
+        public CollectionInvokerBuilder<T, C> filters(Collection<AbstractFilter<T, C>> filters) {
             this.filters = filters;
             return this;
         }
