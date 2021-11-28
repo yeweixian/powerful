@@ -9,19 +9,33 @@ import org.springframework.util.Assert;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public final class NewCollectionInvoker<T, C> {
 
     private final C context;
     private final Collection<InvokerInterceptor<T, C>> interceptors;
-    private final Collection<AbstractFilter<T, C>> filters;
+    private final Consumer<Collection<T>> consumer;
 
     private NewCollectionInvoker(C context,
                                  Collection<InvokerInterceptor<T, C>> interceptors,
                                  Collection<AbstractFilter<T, C>> filters) {
         this.context = context;
         this.interceptors = CollectionUtils.emptyIfNull(interceptors);
-        this.filters = CollectionUtils.emptyIfNull(filters);
+        final Collection<AbstractFilter<T, C>> filterCollection = CollectionUtils.emptyIfNull(filters);
+        this.consumer = collection -> {
+            // filter 设置 所需 context
+            filterCollection.stream().filter(Objects::nonNull)
+                    .forEach(item -> item.setContext(context));
+            // 单元素过滤处理；
+            try {
+                final Predicate<T> allPredicate = PredicateUtils.allPredicate(filterCollection);
+                CollectionUtils.filter(collection, allPredicate);
+            } finally {
+                filterCollection.stream().filter(Objects::nonNull)
+                        .forEach(AbstractFilter::removeContext);
+            }
+        };
     }
 
     public static <T, C> NewCollectionInvokerBuilder<T, C> builder() {
@@ -31,30 +45,18 @@ public final class NewCollectionInvoker<T, C> {
     public void invoke(Collection<T> collection) {
         Assert.notNull(collection, "collection must not be null");
         Assert.notNull(context, "context must not be null");
-        Runnable runnable = () -> {
-            // filter 设置 所需 context
-            filters.stream().filter(Objects::nonNull)
-                    .forEach(item -> item.setContext(context));
-            // 单元素过滤处理；
-            try {
-                final Predicate<T> allPredicate = PredicateUtils.allPredicate(filters);
-                CollectionUtils.filter(collection, allPredicate);
-            } finally {
-                filters.stream().filter(Objects::nonNull)
-                        .forEach(AbstractFilter::removeContext);
-            }
-        };
+        Consumer<Collection<T>> plugin = consumer;
         for (InvokerInterceptor<T, C> interceptor : interceptors) {
-            runnable = interceptor.plugin(new Invocation<>(runnable, collection, context));
+            plugin = interceptor.plugin(plugin, context);
         }
-        runnable.run();
+        plugin.accept(collection);
     }
 
     public interface InvokerInterceptor<T, C> {
         void intercept(Invocation<T, C> invocation);
 
-        default Runnable plugin(Invocation<T, C> invocation) {
-            return () -> this.intercept(invocation);
+        default Consumer<Collection<T>> plugin(Consumer<Collection<T>> consumer, C context) {
+            return collection -> this.intercept(new Invocation<>(consumer, collection, context));
         }
     }
 
@@ -86,12 +88,12 @@ public final class NewCollectionInvoker<T, C> {
     @Getter
     @AllArgsConstructor
     public static class Invocation<T, C> {
-        private final Runnable runnable;
+        private final Consumer<Collection<T>> consumer;
         private final Collection<T> collection;
         private final C context;
 
         public void proceed() {
-            runnable.run();
+            consumer.accept(collection);
         }
     }
 
