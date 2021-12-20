@@ -15,6 +15,37 @@ import java.util.List;
 
 public class SortTest {
 
+    private static int comparatorFunction(final char[] sortChars1,
+                                          final char[] sortChars2,
+                                          final char[] nameChars1,
+                                          final char[] nameChars2) {
+        final int minLength = NumberUtils.min(sortChars1.length, sortChars2.length, nameChars1.length, nameChars2.length);
+        final char sc0 = '#';
+        for (int i = 0; i < minLength; i++) {
+            final char sc1 = sortChars1[i];
+            final char sc2 = sortChars2[i];
+            if (CharUtils.compare(sc0, sc1) == 0
+                    && CharUtils.compare(sc1, sc2) != 0) {
+                return 1;
+            }
+            if (CharUtils.compare(sc0, sc2) == 0
+                    && CharUtils.compare(sc1, sc2) != 0) {
+                return -1;
+            }
+            final int sortCompare = CharUtils.compare(sc1, sc2);
+            if (sortCompare != 0) {
+                return sortCompare;
+            }
+            final char nc1 = nameChars1[i];
+            final char nc2 = nameChars2[i];
+            final int nameCompare = CharUtils.compare(nc1, nc2);
+            if (nameCompare != 0) {
+                return nameCompare;
+            }
+        }
+        return 0;
+    }
+
     @Test
     public void testSortList() {
         final List<SortDemo> sortList = Lists.newArrayList(
@@ -74,31 +105,7 @@ public class SortTest {
             final char[] sortChars2 = o2.getSort().toCharArray();
             final char[] nameChars1 = o1.getName().toCharArray();
             final char[] nameChars2 = o2.getName().toCharArray();
-            final int minLength = NumberUtils.min(sortChars1.length, sortChars2.length, nameChars1.length, nameChars2.length);
-            final char sc0 = '#';
-            for (int i = 0; i < minLength; i++) {
-                final char sc1 = sortChars1[i];
-                final char sc2 = sortChars2[i];
-                if (CharUtils.compare(sc0, sc1) == 0
-                        && CharUtils.compare(sc1, sc2) != 0) {
-                    return 1;
-                }
-                if (CharUtils.compare(sc0, sc2) == 0
-                        && CharUtils.compare(sc1, sc2) != 0) {
-                    return -1;
-                }
-                final int sortCompare = CharUtils.compare(sc1, sc2);
-                if (sortCompare != 0) {
-                    return sortCompare;
-                }
-                final char nc1 = nameChars1[i];
-                final char nc2 = nameChars2[i];
-                final int nameCompare = CharUtils.compare(nc1, nc2);
-                if (nameCompare != 0) {
-                    return nameCompare;
-                }
-            }
-            return 0;
+            return comparatorFunction(sortChars1, sortChars2, nameChars1, nameChars2);
         };
         sortList.sort(comparator);
         System.out.println(JSON.toJSONString(sortList, SerializerFeature.DisableCircularReferenceDetect));
