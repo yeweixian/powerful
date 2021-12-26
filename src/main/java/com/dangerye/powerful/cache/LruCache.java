@@ -5,12 +5,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public final class LruCache<K, V> {
 
+    private final int hotSize;
+    private final long survivalTime;
     private final ReentrantLock lock;
     private final ConcurrentHashMap<K, Node<K, V>> cache;
     private final Node<K, V> begin;
     private final Node<K, V> end;
-    private final int hotSize;
-    private final long survivalTime;
 
     private LruCache(int hotSize, long survivalTime) {
         this.hotSize = hotSize;
@@ -33,11 +33,15 @@ public final class LruCache<K, V> {
         lock.lock();
         try {
             final Node<K, V> oldNode = cache.put(key, newNode);
+            setHead(newNode);
             if (oldNode != null) {
                 removeNode(oldNode);
-                setHead(newNode);
             } else {
-
+                if (cache.size() > hotSize) {
+                    final Node<K, V> lastNode = end.prev;
+                    cache.remove(lastNode.key);
+                    removeNode(lastNode);
+                }
             }
         } finally {
             lock.unlock();
