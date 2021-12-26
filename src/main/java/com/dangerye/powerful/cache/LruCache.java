@@ -57,13 +57,7 @@ public final class LruCache<K, V> {
             return null;
         }
         if (target.expireTime < now) {
-            lock.lock();
-            try {
-                cache.remove(target.key);
-                removeNode(target);
-            } finally {
-                lock.unlock();
-            }
+            removeCache(target);
             return null;
         } else {
             final V result = target.value;
@@ -87,13 +81,7 @@ public final class LruCache<K, V> {
             }
         }
         if (target.expireTime < now) {
-            lock.lock();
-            try {
-                cache.remove(target.key);
-                removeNode(target);
-            } finally {
-                lock.unlock();
-            }
+            removeCache(target);
             final V result = Optional.ofNullable(supplier)
                     .map(Supplier::get)
                     .orElse(null);
@@ -107,6 +95,16 @@ public final class LruCache<K, V> {
             final V result = target.value;
             put(key, result);
             return result;
+        }
+    }
+
+    private void removeCache(final Node<K, V> target) {
+        lock.lock();
+        try {
+            cache.remove(target.key);
+            removeNode(target);
+        } finally {
+            lock.unlock();
         }
     }
 
