@@ -19,6 +19,8 @@ public final class LruCache<K, V> {
         this.cache = new ConcurrentHashMap<>(hotSize + 1);
         this.begin = new Node<>();
         this.end = new Node<>();
+        begin.next = end;
+        end.prev = begin;
     }
 
     public static <K, V> LruCache<K, V> initCache(int hotSize, long survivalTime) {
@@ -27,7 +29,34 @@ public final class LruCache<K, V> {
 
     public void put(K key, V value) {
         long expireTime = System.currentTimeMillis() + survivalTime;
+        final Node<K, V> newNode = new Node<>(key, value, expireTime);
+        lock.lock();
+        try {
+            final Node<K, V> oldNode = cache.put(key, newNode);
+            if (oldNode != null) {
+                removeNode(oldNode);
+                setHead(newNode);
+            } else {
 
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void setHead(Node<K, V> node) {
+        final Node<K, V> next = begin.next;
+        begin.next = node;
+        node.prev = begin;
+        node.next = next;
+        next.prev = node;
+    }
+
+    private void removeNode(Node<K, V> node) {
+        final Node<K, V> prev = node.prev;
+        final Node<K, V> next = node.next;
+        prev.next = next;
+        next.prev = prev;
     }
 
     private static class Node<K, V> {
