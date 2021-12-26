@@ -1,7 +1,9 @@
 package com.dangerye.powerful.cache;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 public final class LruCache<K, V> {
 
@@ -59,9 +61,47 @@ public final class LruCache<K, V> {
             try {
                 cache.remove(target.key);
                 removeNode(target);
-                return null;
             } finally {
                 lock.unlock();
+            }
+            return null;
+        } else {
+            final V result = target.value;
+            put(key, result);
+            return result;
+        }
+    }
+
+    public V get(K key, Supplier<V> supplier) {
+        long now = System.currentTimeMillis();
+        final Node<K, V> target = cache.get(key);
+        if (target == null) {
+            final V result = Optional.ofNullable(supplier)
+                    .map(Supplier::get)
+                    .orElse(null);
+            if (result == null) {
+                return null;
+            } else {
+                put(key, result);
+                return result;
+            }
+        }
+        if (target.expireTime < now) {
+            lock.lock();
+            try {
+                cache.remove(target.key);
+                removeNode(target);
+            } finally {
+                lock.unlock();
+            }
+            final V result = Optional.ofNullable(supplier)
+                    .map(Supplier::get)
+                    .orElse(null);
+            if (result == null) {
+                return null;
+            } else {
+                put(key, result);
+                return result;
             }
         } else {
             final V result = target.value;
