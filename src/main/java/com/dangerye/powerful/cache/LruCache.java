@@ -48,6 +48,28 @@ public final class LruCache<K, V> {
         }
     }
 
+    public V get(K key) {
+        long now = System.currentTimeMillis();
+        final Node<K, V> target = cache.get(key);
+        if (target == null) {
+            return null;
+        }
+        if (target.expireTime < now) {
+            lock.lock();
+            try {
+                cache.remove(target.key);
+                removeNode(target);
+                return null;
+            } finally {
+                lock.unlock();
+            }
+        } else {
+            final V result = target.value;
+            put(key, result);
+            return result;
+        }
+    }
+
     private void setHead(Node<K, V> node) {
         final Node<K, V> next = begin.next;
         begin.next = node;
