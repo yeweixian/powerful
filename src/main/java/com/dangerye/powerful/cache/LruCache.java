@@ -29,27 +29,6 @@ public final class LruCache<K, V> {
         return new LruCache<>(hotSize, survivalTime);
     }
 
-    public void put(K key, V value) {
-        long expireTime = System.currentTimeMillis() + survivalTime;
-        final Node<K, V> newNode = new Node<>(key, value, expireTime);
-        lock.lock();
-        try {
-            final Node<K, V> oldNode = cache.put(key, newNode);
-            setHead(newNode);
-            if (oldNode != null) {
-                removeNode(oldNode);
-            } else {
-                if (cache.size() > hotSize) {
-                    final Node<K, V> lastNode = end.prev;
-                    cache.remove(lastNode.key);
-                    removeNode(lastNode);
-                }
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
     public V get(K key) {
         long now = System.currentTimeMillis();
         final Node<K, V> target = cache.get(key);
@@ -95,6 +74,27 @@ public final class LruCache<K, V> {
             final V result = target.value;
             put(key, result);
             return result;
+        }
+    }
+
+    public void put(K key, V value) {
+        long expireTime = System.currentTimeMillis() + survivalTime;
+        final Node<K, V> newNode = new Node<>(key, value, expireTime);
+        lock.lock();
+        try {
+            final Node<K, V> oldNode = cache.put(key, newNode);
+            setHead(newNode);
+            if (oldNode != null) {
+                removeNode(oldNode);
+            } else {
+                if (cache.size() > hotSize) {
+                    final Node<K, V> lastNode = end.prev;
+                    cache.remove(lastNode.key);
+                    removeNode(lastNode);
+                }
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
