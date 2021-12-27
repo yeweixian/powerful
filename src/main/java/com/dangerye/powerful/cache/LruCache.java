@@ -30,46 +30,34 @@ public final class LruCache<K, V> {
     }
 
     public V get(K key) {
-        long now = System.currentTimeMillis();
-        final Node<K, V> target = cache.get(key);
-        if (target == null) {
-            return null;
-        }
-        if (target.expireTime < now) {
-            removeCache(target);
-            return null;
-        } else {
-            final V result = target.value;
-            put(key, result);
-            return result;
-        }
+        Supplier<V> resultSupplier = () -> null;
+        return codeGet(key, resultSupplier);
     }
 
     public V get(K key, Supplier<V> supplier) {
+        Supplier<V> resultSupplier = () -> {
+            final V result = Optional.ofNullable(supplier)
+                    .map(Supplier::get)
+                    .orElse(null);
+            if (result == null) {
+                return null;
+            } else {
+                put(key, result);
+                return result;
+            }
+        };
+        return codeGet(key, resultSupplier);
+    }
+
+    private V codeGet(K key, Supplier<V> supplier) {
         long now = System.currentTimeMillis();
         final Node<K, V> target = cache.get(key);
         if (target == null) {
-            final V result = Optional.ofNullable(supplier)
-                    .map(Supplier::get)
-                    .orElse(null);
-            if (result == null) {
-                return null;
-            } else {
-                put(key, result);
-                return result;
-            }
+            return supplier.get();
         }
         if (target.expireTime < now) {
             removeCache(target);
-            final V result = Optional.ofNullable(supplier)
-                    .map(Supplier::get)
-                    .orElse(null);
-            if (result == null) {
-                return null;
-            } else {
-                put(key, result);
-                return result;
-            }
+            return supplier.get();
         } else {
             final V result = target.value;
             put(key, result);
