@@ -33,12 +33,15 @@ public class CollectionInvokerTest {
             }
         };
         final CollectionInvoker.InvokerInterceptor<Item, Map<String, Object>> interceptor
-                = invocation -> {
-            final int beforeSum = invocation.getCollection().stream().mapToInt(Item::getValue).sum();
-            invocation.getContext().put("beforeSum", beforeSum);
-            invocation.proceed();
-            final int afterSum = invocation.getCollection().stream().mapToInt(Item::getValue).sum();
-            invocation.getContext().put("afterSum", afterSum);
+                = new CollectionInvoker.InvokerInterceptor<Item, Map<String, Object>>() {
+            @Override
+            protected void intercept(CollectionInvoker.Invocation<Item, Map<String, Object>> invocation) {
+                final int beforeSum = invocation.getCollection().stream().mapToInt(Item::getValue).sum();
+                invocation.getContext().put("beforeSum", beforeSum);
+                invocation.proceed();
+                final int afterSum = invocation.getCollection().stream().mapToInt(Item::getValue).sum();
+                invocation.getContext().put("afterSum", afterSum);
+            }
         };
         final HashMap<String, Object> context = Maps.newHashMap();
         final CollectionInvoker<Item, Map<String, Object>> invoker = CollectionInvoker.<Item, Map<String, Object>>builder()

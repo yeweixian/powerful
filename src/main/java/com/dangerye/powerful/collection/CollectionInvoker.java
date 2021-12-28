@@ -61,10 +61,11 @@ public final class CollectionInvoker<T, C> {
         plugin.accept(collection);
     }
 
-    public interface InvokerInterceptor<T, C> {
-        void intercept(Invocation<T, C> invocation);
+    public static abstract class InvokerInterceptor<T, C> {
 
-        default Consumer<Collection<T>> plugin(Consumer<Collection<T>> consumer, C context) {
+        protected abstract void intercept(Invocation<T, C> invocation);
+
+        private Consumer<Collection<T>> plugin(Consumer<Collection<T>> consumer, C context) {
             return collection -> this.intercept(new Invocation<>(consumer, collection, context));
         }
     }
