@@ -45,11 +45,10 @@ public class CollectionInvokerTest {
         };
         final HashMap<String, Object> context = Maps.newHashMap();
         final CollectionInvoker<Item, Map<String, Object>> invoker = CollectionInvoker.<Item, Map<String, Object>>builder()
-                .context(context)
                 .interceptors(Lists.newArrayList(interceptor))
                 .filters(Lists.newArrayList(filter))
                 .build();
-        invoker.invoke(list);
+        invoker.invoke(list, context);
         System.out.println("after invoke: " + JSON.toJSONString(list));
         System.out.println("context: " + JSON.toJSONString(context));
     }

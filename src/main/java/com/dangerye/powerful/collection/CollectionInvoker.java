@@ -15,29 +15,13 @@ import java.util.stream.Collectors;
 
 public final class CollectionInvoker<T, C> {
 
-    private final C context;
     private final Collection<InvokerInterceptor<T, C>> interceptors;
-    private final Consumer<Collection<T>> consumer;
+    private final Collection<AbstractFilter<T, C>> filterCollection;
 
-    private CollectionInvoker(C context,
-                              Collection<InvokerInterceptor<T, C>> interceptors,
+    private CollectionInvoker(Collection<InvokerInterceptor<T, C>> interceptors,
                               Collection<AbstractFilter<T, C>> filters) {
-        this.context = context;
         this.interceptors = CollectionUtils.emptyIfNull(interceptors);
-        final Collection<AbstractFilter<T, C>> filterCollection = CollectionUtils.emptyIfNull(filters);
-        this.consumer = collection -> {
-            // filter 设置 所需 context
-            filterCollection.stream().filter(Objects::nonNull)
-                    .forEach(item -> item.setContext(context));
-            // 单元素过滤处理；
-            try {
-                final Predicate<T> allPredicate = PredicateUtils.allPredicate(filterCollection);
-                CollectionUtils.filter(collection, allPredicate);
-            } finally {
-                filterCollection.stream().filter(Objects::nonNull)
-                        .forEach(AbstractFilter::removeContext);
-            }
-        };
+        this.filterCollection = CollectionUtils.emptyIfNull(filters);
     }
 
     public static <T, C> CollectionInvokerBuilder<T, C> builder() {
@@ -51,14 +35,26 @@ public final class CollectionInvoker<T, C> {
                 .collect(Collectors.toList());
     }
 
-    public void invoke(Collection<T> collection) {
-        Assert.notNull(collection, "collection must not be null");
+    public void invoke(Collection<T> coll, C context) {
+        Assert.notNull(coll, "collection must not be null");
         Assert.notNull(context, "context must not be null");
-        Consumer<Collection<T>> plugin = consumer;
+        Consumer<Collection<T>> plugin = collection -> {
+            // filter 设置 所需 context
+            filterCollection.stream().filter(Objects::nonNull)
+                    .forEach(item -> item.setContext(context));
+            // 单元素过滤处理；
+            try {
+                final Predicate<T> allPredicate = PredicateUtils.allPredicate(filterCollection);
+                CollectionUtils.filter(collection, allPredicate);
+            } finally {
+                filterCollection.stream().filter(Objects::nonNull)
+                        .forEach(AbstractFilter::removeContext);
+            }
+        };
         for (InvokerInterceptor<T, C> interceptor : interceptors) {
             plugin = interceptor.plugin(plugin, context);
         }
-        plugin.accept(collection);
+        plugin.accept(coll);
     }
 
     public static abstract class InvokerInterceptor<T, C> {
@@ -120,16 +116,10 @@ public final class CollectionInvoker<T, C> {
     }
 
     public static class CollectionInvokerBuilder<T, C> {
-        private C context;
         private Collection<InvokerInterceptor<T, C>> interceptors;
         private Collection<AbstractFilter<T, C>> filters;
 
         private CollectionInvokerBuilder() {
-        }
-
-        public CollectionInvokerBuilder<T, C> context(C context) {
-            this.context = context;
-            return this;
         }
 
         public CollectionInvokerBuilder<T, C> interceptors(Collection<InvokerInterceptor<T, C>> interceptors) {
@@ -143,7 +133,7 @@ public final class CollectionInvoker<T, C> {
         }
 
         public CollectionInvoker<T, C> build() {
-            return new CollectionInvoker<>(context, interceptors, filters);
+            return new CollectionInvoker<>(interceptors, filters);
         }
     }
 }
