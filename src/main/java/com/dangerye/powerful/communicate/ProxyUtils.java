@@ -1,41 +1,50 @@
 package com.dangerye.powerful.communicate;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.springframework.util.Assert;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
 import java.util.concurrent.Callable;
 
 public final class ProxyUtils {
-
-    public static <R> Callable<R> getCallable(Callable<R> callSupplier,
-                                              String supplier,
-                                              Map<String, Object> paramMap,
-                                              List<Interceptor> interceptors) {
+    public static <R> Callable<R> getCallable(final Callable<R> callable,
+                                              final Collection<Interceptor> interceptors,
+                                              final Context context) {
+        Assert.notNull(callable, "callable must not be null");
+        Assert.notNull(interceptors, "interceptors must not be null");
+        Assert.notNull(context, "context must not be null");
+        Callable<R> plugin = callable;
         for (Interceptor interceptor : interceptors) {
-            callSupplier = interceptor.plugin(new Invocation<>(callSupplier, supplier, paramMap));
+            plugin = interceptor.plugin(plugin, context);
         }
-        return callSupplier;
+        return plugin;
     }
 
-    public interface Interceptor {
-        <R> R intercept(Invocation<R> invocation) throws Exception;
+    public interface Context {
+    }
 
-        default <R> Callable<R> plugin(Invocation<R> invocation) {
-            return () -> this.intercept(invocation);
+    public static abstract class Interceptor {
+        protected abstract <R> R intercept(Invocation<R> invocation) throws Exception;
+
+        private <R> Callable<R> plugin(Callable<R> plugin, Context context) {
+            return () -> intercept(new Invocation<>(plugin, context));
         }
     }
 
-    @Getter
-    @AllArgsConstructor
     public static class Invocation<R> {
-        private final Callable<R> callSupplier;
-        private final String supplier;
-        private final Map<String, Object> paramMap;
+        private final Callable<R> callable;
+        private final Context context;
+
+        private Invocation(Callable<R> callable, Context context) {
+            this.callable = callable;
+            this.context = context;
+        }
+
+        public Context getContext() {
+            return context;
+        }
 
         public R proceed() throws Exception {
-            return callSupplier.call();
+            return callable.call();
         }
     }
 }
