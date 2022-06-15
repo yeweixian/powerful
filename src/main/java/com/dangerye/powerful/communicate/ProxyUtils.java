@@ -3,6 +3,7 @@ package com.dangerye.powerful.communicate;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public final class ProxyUtils {
@@ -20,6 +21,9 @@ public final class ProxyUtils {
     }
 
     public interface Context {
+        String getSupplier();
+
+        Map<String, Object> getParamMap();
     }
 
     public static abstract class Interceptor {

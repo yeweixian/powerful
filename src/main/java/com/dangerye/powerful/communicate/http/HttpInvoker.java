@@ -1,7 +1,13 @@
 package com.dangerye.powerful.communicate.http;
 
-import com.dangerye.powerful.builder.CollectionBuilder;
-import com.dangerye.powerful.communicate.CallHandler;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.dangerye.powerful.communicate.CallableUtils;
+import com.dangerye.powerful.communicate.ProxyUtils;
+import com.dangerye.powerful.utils.LogUtils;
+import com.google.common.collect.Lists;
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -14,14 +20,15 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Slf4j
-public final class HttpInvoker {
+public final class HttpInvoker extends CallableUtils<String, Exception> {
 
     private static final Supplier<CloseableHttpClient> HTTP_CLIENT_SUPPLIER = () -> {
         RequestConfig requestConfig = RequestConfig.custom()
@@ -44,80 +51,40 @@ public final class HttpInvoker {
         }
     };
 
-    private final HttpSupplier httpSupplier;
-    private final Function<Consumer<Exception>, String> httpGetFunction;
-    private final HttpThrowFunction httpThrowFunction;
-
-    private HttpInvoker(CloseableHttpClient httpClient, HttpUriRequest httpRequest, ResponseHandler<String> responseHandler, boolean showInfoMsg) {
-        this.httpSupplier = client -> {
-            ResponseHandler<String> handler = Optional.ofNullable(responseHandler).orElse(DEFAULTRESPONSEHANDLER);
-            return CallHandler.init(() -> client.execute(httpRequest, handler),
-                    "HTTP_CALLED", CollectionBuilder.<String, Object>treeMapBuilder()
-                            .put("method", Objects.toString(httpRequest.getMethod(), ""))
-                            .put("uri", Objects.toString(httpRequest.getURI(), ""))
-                            .build(), showInfoMsg)
-                    .getOrThrow(e -> e);
-        };
-        this.httpGetFunction = consumer -> {
-            Args.notNull(httpRequest, "HTTP request");
-            try (CloseableHttpClient client = Optional.ofNullable(httpClient).orElseGet(HTTP_CLIENT_SUPPLIER)) {
-                return httpSupplier.get(client);
+    private static final ProxyUtils.Interceptor HTTP_PROLOG_INTERCEPTOR = new ProxyUtils.Interceptor() {
+        @Override
+        protected <R> R intercept(ProxyUtils.Invocation<R> invocation) throws Exception {
+            try {
+                return invocation.proceed();
             } catch (Exception e) {
-                if (consumer != null) {
-                    consumer.accept(e);
-                }
-                return null;
+                LogUtils.warn(log, "httpCallFail",
+                        Objects.toString(invocation.getContext().getSupplier(), "") + " param:{}",
+                        JSON.toJSONString(invocation.getContext().getParamMap(), SerializerFeature.DisableCircularReferenceDetect), e);
+                throw e;
+            }
+        }
+    };
+
+    private HttpInvoker(final HttpContext httpContext) {
+        super();
+        Args.notNull(httpContext.getHttpRequest(), "HTTP request");
+        final Callable<String> callable = () -> {
+            try (CloseableHttpClient client = Optional.ofNullable(httpContext.getHttpClient()).orElseGet(HTTP_CLIENT_SUPPLIER)) {
+                ResponseHandler<String> handler = Optional.ofNullable(httpContext.getResponseHandler()).orElse(DEFAULTRESPONSEHANDLER);
+                return client.execute(httpContext.getHttpRequest(), handler);
             }
         };
-        this.httpThrowFunction = new HttpThrowFunction() {
-            @Override
-            public <E extends Throwable> String apply(Function<Exception, ? extends E> function) throws E {
-                Args.notNull(httpRequest, "HTTP request");
-                try (CloseableHttpClient client = Optional.ofNullable(httpClient).orElseGet(HTTP_CLIENT_SUPPLIER)) {
-                    return httpSupplier.get(client);
-                } catch (Exception e) {
-                    throw function.apply(e);
-                }
-            }
-        };
+        final Callable<String> proxy = ProxyUtils.getCallable(callable, Lists.newArrayList(HTTP_PROLOG_INTERCEPTOR), httpContext);
+        init(proxy, Function.identity());
     }
 
-    public static HttpInvoker execute(HttpUriRequest httpRequest, boolean showInfoMsg) {
-        return new HttpInvoker(null, httpRequest, null, showInfoMsg);
-    }
-
-    public static HttpInvoker execute(CloseableHttpClient httpClient, HttpUriRequest httpRequest, boolean showInfoMsg) {
-        return new HttpInvoker(httpClient, httpRequest, null, showInfoMsg);
-    }
-
-    public static HttpInvoker execute(CloseableHttpClient httpClient, HttpUriRequest httpRequest,
-                                      ResponseHandler<String> responseHandler, boolean showInfoMsg) {
-        return new HttpInvoker(httpClient, httpRequest, responseHandler, showInfoMsg);
-    }
-
-    public String get() {
-        return get(null);
-    }
-
-    private String get(Consumer<Exception> consumer) {
-        return httpGetFunction.apply(consumer);
-    }
-
-    public <E extends Throwable> String getOrThrow(Function<Exception, ? extends E> function) throws E {
-        return httpThrowFunction.apply(function);
-    }
-
-    public <E extends Throwable> String getElseThrow(Function<Exception, ? extends E> function) throws E {
-        return CallHandler.getElseThrow(this::get, function);
-    }
-
-    @FunctionalInterface
-    private interface HttpSupplier {
-        String get(CloseableHttpClient client) throws Exception;
-    }
-
-    @FunctionalInterface
-    private interface HttpThrowFunction {
-        <E extends Throwable> String apply(Function<Exception, ? extends E> function) throws E;
+    @Data
+    @Builder
+    public static class HttpContext implements ProxyUtils.Context {
+        private CloseableHttpClient httpClient;
+        private HttpUriRequest httpRequest;
+        private ResponseHandler<String> responseHandler;
+        private String supplier;
+        private Map<String, Object> paramMap;
     }
 }

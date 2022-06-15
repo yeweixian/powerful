@@ -10,10 +10,13 @@ import java.util.function.Function;
 @Slf4j
 public abstract class CallableUtils<R, E extends Throwable> {
 
-    private final Function<Consumer<E>, R> getFunction;
-    private final ThrowFunction<R, E> throwFunction;
+    private Function<Consumer<E>, R> getFunction;
+    private ThrowFunction<R, E> throwFunction;
 
-    protected CallableUtils(final Callable<R> callable, final Function<Exception, E> changeException) {
+    protected CallableUtils() {
+    }
+
+    protected final void init(final Callable<R> callable, final Function<Exception, E> changeException) {
         this.getFunction = consumer -> {
             try {
                 return callable.call();
@@ -61,7 +64,7 @@ public abstract class CallableUtils<R, E extends Throwable> {
         <T extends Throwable> R apply(Function<E, ? extends T> function) throws T;
     }
 
-    private static class Context<E> {
+    private static final class Context<E> {
         private E e;
     }
 }
