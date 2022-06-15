@@ -78,6 +78,10 @@ public final class HttpInvoker extends CallableUtils<String, Exception> {
         init(proxy, Function.identity());
     }
 
+    public static HttpInvoker execute(final HttpContext httpContext) {
+        return new HttpInvoker(httpContext);
+    }
+
     @Data
     @Builder
     public static class HttpContext implements ProxyUtils.Context {
