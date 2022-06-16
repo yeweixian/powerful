@@ -12,7 +12,10 @@ public class HttpTest {
         HttpUriRequest request = RequestBuilder
                 .get("https://api.hearthstonejson.com/v1/latest/zhCN/cards.collectible.json")
                 .build();
-        String resp = HttpInvoker.execute(null, request, true).get();
+        String resp = HttpInvoker.execute(HttpInvoker.HttpContext.builder()
+                .httpRequest(request)
+                .build())
+                .get();
         System.out.println("resp" + resp);
     }
 
@@ -25,7 +28,10 @@ public class HttpTest {
                 .addParameter("Region", "ALL")
                 .addParameter("TimeRange", "LAST_30_DAYS")
                 .build();
-        String resp = HttpInvoker.execute(null, request, true).get();
+        String resp = HttpInvoker.execute(HttpInvoker.HttpContext.builder()
+                .httpRequest(request)
+                .build())
+                .get();
         System.out.println("resp" + resp);
     }
 
@@ -36,10 +42,22 @@ public class HttpTest {
                 .get("http://127.0.0.1:8080/user/sayHello?msg=dangerye")
                 .build();
         for (int i = 0; i < 3; i++) {
-            HttpInvoker.execute(null, request, true).get();
-            HttpInvoker.execute(null, request, true).get();
-            HttpInvoker.execute(null, request, true).get();
-            HttpInvoker.execute(null, request, true).get();
+            HttpInvoker.execute(HttpInvoker.HttpContext.builder()
+                    .httpRequest(request)
+                    .build())
+                    .get();
+            HttpInvoker.execute(HttpInvoker.HttpContext.builder()
+                    .httpRequest(request)
+                    .build())
+                    .get();
+            HttpInvoker.execute(HttpInvoker.HttpContext.builder()
+                    .httpRequest(request)
+                    .build())
+                    .get();
+            HttpInvoker.execute(HttpInvoker.HttpContext.builder()
+                    .httpRequest(request)
+                    .build())
+                    .get();
             Thread.sleep(4000);
         }
     }
