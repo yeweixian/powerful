@@ -1,10 +1,109 @@
 package com.dangerye.powerful.communicate.http;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.dangerye.powerful.communicate.AbstractInvoker;
+import com.dangerye.powerful.utils.LogUtils;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.Args;
+import org.apache.http.util.EntityUtils;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 @Slf4j
-public final class HttpInvoker extends AbstractInvoker<String, Exception, HttpInvoker.HttpContext> {}
+public final class HttpInvoker extends AbstractInvoker<String, Exception> {
+
+    private static final Supplier<CloseableHttpClient> HTTP_CLIENT_SUPPLIER = () -> {
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(1000)
+                .setSocketTimeout(5000)
+                .setConnectTimeout(5000)
+                .build();
+        return HttpClientBuilder.create()
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+    };
+
+    private static final ResponseHandler<String> DEFAULTRESPONSEHANDLER = httpResponse -> {
+        int status = httpResponse.getStatusLine().getStatusCode();
+        if (status >= HttpStatus.SC_OK && status < HttpStatus.SC_MULTIPLE_CHOICES) {
+            HttpEntity entity = httpResponse.getEntity();
+            return entity != null ? EntityUtils.toString(entity) : null;
+        } else {
+            throw new ClientProtocolException("Unexpected response status: " + status);
+        }
+    };
+
+    private static final Interceptor HTTP_PROLOG_INTERCEPTOR = new Interceptor() {
+        @Override
+        protected <R> R intercept(Invocation<R> invocation) throws Exception {
+            try {
+                return invocation.proceed();
+            } catch (Exception e) {
+                LogUtils.warn(log, "httpCallFail",
+                        Objects.toString(invocation.getContext().getSupplier(), "") + " param:{}",
+                        JSON.toJSONString(invocation.getContext().getParamMap(), SerializerFeature.DisableCircularReferenceDetect), e);
+                throw e;
+            }
+        }
+    };
+
+    @Override
+    protected <C extends Context> String coreCode(C context) throws Exception {
+        final HttpContext httpContext = check(context);
+        Args.notNull(httpContext.getHttpRequest(), "HTTP request");
+    }
+
+    @Override
+    protected <C extends Context> Collection<Interceptor> logicInterceptors(C context) {
+        return Lists.newArrayList(HTTP_PROLOG_INTERCEPTOR);
+    }
+
+    @Override
+    protected <C extends Context> Exception transformException(C context, Exception exception) {
+        return exception;
+    }
+
+    private HttpContext check(Context context) {
+        Args.check(context instanceof HttpContext, "类型不匹配");
+        return (HttpContext) context;
+    }
+
+    @Data
+    @Builder
+    public static class HttpContext implements Context {
+        private String supplier;
+        private CloseableHttpClient httpClient;
+        private HttpUriRequest httpRequest;
+        private ResponseHandler<String> responseHandler;
+
+        @Override
+        public Map<String, Object> getParamMap() {
+            if (httpRequest != null) {
+                return ImmutableMap.<String, Object>builder()
+                        .put("method", Objects.toString(httpRequest.getMethod(), ""))
+                        .put("uri", Objects.toString(httpRequest.getURI(), ""))
+                        .build();
+            }
+            return null;
+        }
+    }
+}
 //public final class HttpInvoker extends CallableUtils<String, Exception> {
 //
 //    private HttpInvoker(final HttpContext httpContext) {
@@ -18,54 +117,5 @@ public final class HttpInvoker extends AbstractInvoker<String, Exception, HttpIn
 //        };
 //        final Callable<String> proxy = ProxyUtils.getCallable(callable, Lists.newArrayList(HTTP_PROLOG_INTERCEPTOR), httpContext);
 //        init(proxy, Function.identity());
-//    }
-//
-//    private static final Supplier<CloseableHttpClient> HTTP_CLIENT_SUPPLIER = () -> {
-//        RequestConfig requestConfig = RequestConfig.custom()
-//                .setConnectionRequestTimeout(1000)
-//                .setSocketTimeout(5000)
-//                .setConnectTimeout(5000)
-//                .build();
-//        return HttpClientBuilder.create()
-//                .setDefaultRequestConfig(requestConfig)
-//                .build();
-//    };
-//
-//    private static final ResponseHandler<String> DEFAULTRESPONSEHANDLER = httpResponse -> {
-//        int status = httpResponse.getStatusLine().getStatusCode();
-//        if (status >= HttpStatus.SC_OK && status < HttpStatus.SC_MULTIPLE_CHOICES) {
-//            HttpEntity entity = httpResponse.getEntity();
-//            return entity != null ? EntityUtils.toString(entity) : null;
-//        } else {
-//            throw new ClientProtocolException("Unexpected response status: " + status);
-//        }
-//    };
-//
-//    private static final ProxyUtils.Interceptor HTTP_PROLOG_INTERCEPTOR = new ProxyUtils.Interceptor() {
-//        @Override
-//        protected <R> R intercept(ProxyUtils.Invocation<R> invocation) throws Exception {
-//            try {
-//                return invocation.proceed();
-//            } catch (Exception e) {
-//                LogUtils.warn(log, "httpCallFail",
-//                        Objects.toString(invocation.getContext().getSupplier(), "") + " param:{}",
-//                        JSON.toJSONString(invocation.getContext().getParamMap(), SerializerFeature.DisableCircularReferenceDetect), e);
-//                throw e;
-//            }
-//        }
-//    };
-//
-//    public static HttpInvoker execute(final HttpContext httpContext) {
-//        return new HttpInvoker(httpContext);
-//    }
-//
-//    @Data
-//    @Builder
-//    public static class HttpContext implements ProxyUtils.Context {
-//        private CloseableHttpClient httpClient;
-//        private HttpUriRequest httpRequest;
-//        private ResponseHandler<String> responseHandler;
-//        private String supplier;
-//        private Map<String, Object> paramMap;
 //    }
 //}

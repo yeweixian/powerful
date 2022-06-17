@@ -1,6 +1,7 @@
 package com.dangerye.powerful.communicate;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -77,6 +78,9 @@ public abstract class AbstractInvoker<R, E extends Throwable> {
     }
 
     public interface Context {
+        String getSupplier();
+
+        Map<String, Object> getParamMap();
     }
 
     @FunctionalInterface
