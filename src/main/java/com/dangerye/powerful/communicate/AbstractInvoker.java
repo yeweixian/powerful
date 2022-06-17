@@ -7,17 +7,18 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class AbstractInvoker<R, E extends Throwable> {
+public abstract class AbstractInvoker<E extends Throwable> {
 
-    private final GetFunction<R, E> getFunction;
-    private final ThrowFunction<R, E> throwFunction;
+    private final GetFunction<E> getFunction;
+    private final ThrowFunction<E> throwFunction;
 
     protected AbstractInvoker() {
-        this.getFunction = new GetFunction<R, E>() {
+        this.getFunction = new GetFunction<E>() {
             @Override
-            public <C extends Context> R handle(C context, Consumer<E> consumer) {
+            public <C extends Context, R> R handle(C context, Consumer<E> consumer) {
                 try {
-                    return getProxy(() -> coreCode(context), context).call();
+                    final Object result = getProxy(() -> coreCode(context), context).call();
+                    return result != null ? (R) result : null;
                 } catch (Exception e) {
                     if (consumer != null) {
                         final E exception = transformException(context, e);
@@ -27,11 +28,12 @@ public abstract class AbstractInvoker<R, E extends Throwable> {
                 }
             }
         };
-        this.throwFunction = new ThrowFunction<R, E>() {
+        this.throwFunction = new ThrowFunction<E>() {
             @Override
-            public <C extends Context, T extends Throwable> R handle(C context, Function<E, ? extends T> function) throws T {
+            public <C extends Context, R, T extends Throwable> R handle(C context, Function<E, ? extends T> function) throws T {
                 try {
-                    return getProxy(() -> coreCode(context), context).call();
+                    final Object result = getProxy(() -> coreCode(context), context).call();
+                    return result != null ? (R) result : null;
                 } catch (Exception e) {
                     final E exception = transformException(context, e);
                     throw function.apply(exception);
@@ -40,7 +42,7 @@ public abstract class AbstractInvoker<R, E extends Throwable> {
         };
     }
 
-    private Callable<R> getProxy(final Callable<R> callable, final Context context) {
+    private <R> Callable<R> getProxy(final Callable<R> callable, final Context context) {
         Callable<R> plugin = callable;
         final Collection<Interceptor> interceptors = logicInterceptors(context);
         if (interceptors != null) {
@@ -53,27 +55,28 @@ public abstract class AbstractInvoker<R, E extends Throwable> {
         return plugin;
     }
 
-    protected abstract <C extends Context> R coreCode(final C context) throws Exception;
+    protected abstract <C extends Context, R> R coreCode(final C context) throws Exception;
 
     protected abstract <C extends Context> Collection<Interceptor> logicInterceptors(final C context);
 
     protected abstract <C extends Context> E transformException(final C context, final Exception exception);
 
-    public final <C extends Context> R get(final C context) {
+    public final <C extends Context, R> R get(final C context) {
         return getFunction.handle(context, null);
     }
 
-    public final <C extends Context> R get(final C context, final Consumer<E> consumer) {
+    public final <C extends Context, R> R get(final C context, final Consumer<E> consumer) {
         return getFunction.handle(context, consumer);
     }
 
-    public final <C extends Context, T extends Throwable> R getOrThrow(final C context, final Function<E, ? extends T> function) throws T {
+    public final <C extends Context, R, T extends Throwable> R getOrThrow(final C context, final Function<E, ? extends T> function) throws T {
         return throwFunction.handle(context, function);
     }
 
-    public final <C extends Context, T extends Throwable> R getElseThrow(final C context, final Function<E, ? extends T> function) throws T {
+    public final <C extends Context, R, T extends Throwable> R getElseThrow(final C context, final Function<E, ? extends T> function) throws T {
         final ExceptionBridging<E> bridging = new ExceptionBridging<>();
-        return Optional.ofNullable(getFunction.handle(context, exception -> bridging.exception = exception))
+        final Object result = getFunction.handle(context, exception -> bridging.exception = exception);
+        return Optional.ofNullable(result != null ? (R) result : null)
                 .orElseThrow(() -> function.apply(bridging.exception));
     }
 
@@ -84,13 +87,13 @@ public abstract class AbstractInvoker<R, E extends Throwable> {
     }
 
     @FunctionalInterface
-    private interface GetFunction<R, E extends Throwable> {
-        <C extends Context> R handle(final C context, final Consumer<E> consumer);
+    private interface GetFunction<E extends Throwable> {
+        <C extends Context, R> R handle(final C context, final Consumer<E> consumer);
     }
 
     @FunctionalInterface
-    private interface ThrowFunction<R, E extends Throwable> {
-        <C extends Context, T extends Throwable> R handle(final C context, final Function<E, ? extends T> function) throws T;
+    private interface ThrowFunction<E extends Throwable> {
+        <C extends Context, R, T extends Throwable> R handle(final C context, final Function<E, ? extends T> function) throws T;
     }
 
     private static final class ExceptionBridging<E> {
