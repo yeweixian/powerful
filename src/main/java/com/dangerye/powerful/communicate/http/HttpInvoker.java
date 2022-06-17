@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 @Slf4j
-public final class HttpInvoker extends AbstractInvoker<String, Exception> {
+public final class HttpInvoker extends AbstractInvoker<Exception> {
 
     private static final Supplier<CloseableHttpClient> HTTP_CLIENT_SUPPLIER = () -> {
         RequestConfig requestConfig = RequestConfig.custom()
@@ -77,12 +77,13 @@ public final class HttpInvoker extends AbstractInvoker<String, Exception> {
     };
 
     @Override
-    protected <C extends Context> String coreCode(C context) throws Exception {
+    @SuppressWarnings("unchecked")
+    protected <C extends Context, R> R coreCode(C context) throws Exception {
         final HttpContext httpContext = check(context);
         Args.notNull(httpContext.getHttpRequest(), "HTTP request");
         try (CloseableHttpClient client = Optional.ofNullable(httpContext.getHttpClient()).orElseGet(HTTP_CLIENT_SUPPLIER)) {
             ResponseHandler<String> handler = Optional.ofNullable(httpContext.getResponseHandler()).orElse(DEFAULTRESPONSEHANDLER);
-            return client.execute(httpContext.getHttpRequest(), handler);
+            return (R) client.execute(httpContext.getHttpRequest(), handler);
         }
     }
 
