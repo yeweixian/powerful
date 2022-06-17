@@ -54,9 +54,9 @@ public abstract class CallableUtils<R, E extends Throwable> {
     }
 
     public final <T extends Throwable> R getElseThrow(final Function<E, ? extends T> function) throws T {
-        final Context<E> context = new Context<>();
-        return Optional.ofNullable(getFunction.apply(exception -> context.e = exception))
-                .orElseThrow(() -> function.apply(context.e));
+        final Bridging<E> bridging = new Bridging<>();
+        return Optional.ofNullable(getFunction.apply(exception -> bridging.e = exception))
+                .orElseThrow(() -> function.apply(bridging.e));
     }
 
     @FunctionalInterface
@@ -64,7 +64,7 @@ public abstract class CallableUtils<R, E extends Throwable> {
         <T extends Throwable> R apply(Function<E, ? extends T> function) throws T;
     }
 
-    private static final class Context<E> {
+    private static final class Bridging<E> {
         private E e;
     }
 }
