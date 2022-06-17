@@ -13,10 +13,17 @@ public abstract class CallableUtils<R, E extends Throwable> {
     private Function<Consumer<E>, R> getFunction;
     private ThrowFunction<R, E> throwFunction;
 
-    protected CallableUtils() {
+    protected CallableUtils(Context context) {
+        final Callable<R> callable = coreCode(context);
+        final Function<Exception, E> changeException = changeException();
+        init(callable, changeException);
     }
 
-    protected final void init(final Callable<R> callable, final Function<Exception, E> changeException) {
+    protected abstract Callable<R> coreCode(Context context);
+
+    protected abstract Function<Exception, E> changeException();
+
+    private void init(final Callable<R> callable, final Function<Exception, E> changeException) {
         this.getFunction = consumer -> {
             try {
                 return callable.call();
@@ -59,9 +66,38 @@ public abstract class CallableUtils<R, E extends Throwable> {
                 .orElseThrow(() -> function.apply(bridging.e));
     }
 
+    public interface Context {
+    }
+
     @FunctionalInterface
     private interface ThrowFunction<R, E extends Throwable> {
         <T extends Throwable> R apply(Function<E, ? extends T> function) throws T;
+    }
+
+    public static abstract class Interceptor {
+        protected abstract <R> R intercept(Invocation<R> invocation) throws Exception;
+
+        private <R> Callable<R> plugin(Callable<R> plugin, Context context) {
+            return () -> intercept(new Invocation<>(plugin, context));
+        }
+    }
+
+    public static final class Invocation<R> {
+        private final Callable<R> callable;
+        private final Context context;
+
+        private Invocation(Callable<R> callable, Context context) {
+            this.callable = callable;
+            this.context = context;
+        }
+
+        public Context getContext() {
+            return context;
+        }
+
+        public R proceed() throws Exception {
+            return callable.call();
+        }
     }
 
     private static final class Bridging<E> {
