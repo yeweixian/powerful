@@ -1,7 +1,5 @@
 package com.dangerye.powerful.communicate;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -9,7 +7,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-@Slf4j
 public abstract class CallableUtils<R, E extends Throwable> {
 
     private Function<Consumer<E>, R> getFunction;
@@ -19,7 +16,7 @@ public abstract class CallableUtils<R, E extends Throwable> {
         final Callable<R> callable = coreCode(context);
         final Supplier<Collection<Interceptor>> interceptorsSupplier = logicInterceptors(context);
         final Function<Exception, E> changeException = changeException(context);
-        init(callable, interceptorsSupplier, changeException);
+        init(callable, interceptorsSupplier, changeException, context);
     }
 
     protected abstract Callable<R> coreCode(Context context);
@@ -30,10 +27,11 @@ public abstract class CallableUtils<R, E extends Throwable> {
 
     private void init(final Callable<R> callable,
                       final Supplier<Collection<Interceptor>> interceptorsSupplier,
-                      final Function<Exception, E> changeException) {
+                      final Function<Exception, E> changeException,
+                      final Context context) {
         this.getFunction = consumer -> {
             try {
-                return callable.call();
+                return getProxy(callable, interceptorsSupplier, context).call();
             } catch (Exception e) {
                 if (consumer != null) {
                     final E ce = changeException.apply(e);
@@ -46,13 +44,30 @@ public abstract class CallableUtils<R, E extends Throwable> {
             @Override
             public <T extends Throwable> R apply(Function<E, ? extends T> function) throws T {
                 try {
-                    return callable.call();
+                    return getProxy(callable, interceptorsSupplier, context).call();
                 } catch (Exception e) {
                     final E ce = changeException.apply(e);
                     throw function.apply(ce);
                 }
             }
         };
+    }
+
+    private Callable<R> getProxy(final Callable<R> callable,
+                                 final Supplier<Collection<Interceptor>> interceptorsSupplier,
+                                 final Context context) {
+        Callable<R> plugin = callable;
+        final Collection<Interceptor> interceptors = Optional.ofNullable(interceptorsSupplier)
+                .map(Supplier::get)
+                .orElse(null);
+        if (interceptors != null) {
+            for (Interceptor interceptor : interceptors) {
+                if (interceptor != null) {
+                    plugin = interceptor.plugin(plugin, context);
+                }
+            }
+        }
+        return plugin;
     }
 
     public final R get() {
