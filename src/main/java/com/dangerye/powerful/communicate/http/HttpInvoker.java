@@ -23,6 +23,7 @@ import org.apache.http.util.EntityUtils;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 @Slf4j
@@ -67,6 +68,10 @@ public final class HttpInvoker extends AbstractInvoker<String, Exception> {
     protected <C extends Context> String coreCode(C context) throws Exception {
         final HttpContext httpContext = check(context);
         Args.notNull(httpContext.getHttpRequest(), "HTTP request");
+        try (CloseableHttpClient client = Optional.ofNullable(httpContext.getHttpClient()).orElseGet(HTTP_CLIENT_SUPPLIER)) {
+            ResponseHandler<String> handler = Optional.ofNullable(httpContext.getResponseHandler()).orElse(DEFAULTRESPONSEHANDLER);
+            return client.execute(httpContext.getHttpRequest(), handler);
+        }
     }
 
     @Override
@@ -104,18 +109,3 @@ public final class HttpInvoker extends AbstractInvoker<String, Exception> {
         }
     }
 }
-//public final class HttpInvoker extends CallableUtils<String, Exception> {
-//
-//    private HttpInvoker(final HttpContext httpContext) {
-//        super();
-//        Args.notNull(httpContext.getHttpRequest(), "HTTP request");
-//        final Callable<String> callable = () -> {
-//            try (CloseableHttpClient client = Optional.ofNullable(httpContext.getHttpClient()).orElseGet(HTTP_CLIENT_SUPPLIER)) {
-//                ResponseHandler<String> handler = Optional.ofNullable(httpContext.getResponseHandler()).orElse(DEFAULTRESPONSEHANDLER);
-//                return client.execute(httpContext.getHttpRequest(), handler);
-//            }
-//        };
-//        final Callable<String> proxy = ProxyUtils.getCallable(callable, Lists.newArrayList(HTTP_PROLOG_INTERCEPTOR), httpContext);
-//        init(proxy, Function.identity());
-//    }
-//}
