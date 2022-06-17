@@ -15,6 +15,7 @@ public abstract class AbstractInvoker<E extends Throwable> {
     protected AbstractInvoker() {
         this.getFunction = new GetFunction<E>() {
             @Override
+            @SuppressWarnings("unchecked")
             public <C extends Context, R> R handle(C context, Consumer<E> consumer) {
                 try {
                     final Object result = getProxy(() -> coreCode(context), context).call();
@@ -30,6 +31,7 @@ public abstract class AbstractInvoker<E extends Throwable> {
         };
         this.throwFunction = new ThrowFunction<E>() {
             @Override
+            @SuppressWarnings("unchecked")
             public <C extends Context, R, T extends Throwable> R handle(C context, Function<E, ? extends T> function) throws T {
                 try {
                     final Object result = getProxy(() -> coreCode(context), context).call();
@@ -61,18 +63,25 @@ public abstract class AbstractInvoker<E extends Throwable> {
 
     protected abstract <C extends Context> E transformException(final C context, final Exception exception);
 
+    @SuppressWarnings("unchecked")
     public final <C extends Context, R> R get(final C context) {
-        return getFunction.handle(context, null);
+        final Object result = getFunction.handle(context, null);
+        return result != null ? (R) result : null;
     }
 
+    @SuppressWarnings("unchecked")
     public final <C extends Context, R> R get(final C context, final Consumer<E> consumer) {
-        return getFunction.handle(context, consumer);
+        final Object result = getFunction.handle(context, consumer);
+        return result != null ? (R) result : null;
     }
 
+    @SuppressWarnings("unchecked")
     public final <C extends Context, R, T extends Throwable> R getOrThrow(final C context, final Function<E, ? extends T> function) throws T {
-        return throwFunction.handle(context, function);
+        final Object result = throwFunction.handle(context, function);
+        return result != null ? (R) result : null;
     }
 
+    @SuppressWarnings("unchecked")
     public final <C extends Context, R, T extends Throwable> R getElseThrow(final C context, final Function<E, ? extends T> function) throws T {
         final ExceptionBridging<E> bridging = new ExceptionBridging<>();
         final Object result = getFunction.handle(context, exception -> bridging.exception = exception);
