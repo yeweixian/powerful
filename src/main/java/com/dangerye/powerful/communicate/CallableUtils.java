@@ -2,10 +2,12 @@ package com.dangerye.powerful.communicate;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Slf4j
 public abstract class CallableUtils<R, E extends Throwable> {
@@ -15,15 +17,20 @@ public abstract class CallableUtils<R, E extends Throwable> {
 
     protected CallableUtils(Context context) {
         final Callable<R> callable = coreCode(context);
-        final Function<Exception, E> changeException = changeException();
-        init(callable, changeException);
+        final Supplier<Collection<Interceptor>> interceptorsSupplier = logicInterceptors(context);
+        final Function<Exception, E> changeException = changeException(context);
+        init(callable, interceptorsSupplier, changeException);
     }
 
     protected abstract Callable<R> coreCode(Context context);
 
-    protected abstract Function<Exception, E> changeException();
+    protected abstract Supplier<Collection<Interceptor>> logicInterceptors(Context context);
 
-    private void init(final Callable<R> callable, final Function<Exception, E> changeException) {
+    protected abstract Function<Exception, E> changeException(Context context);
+
+    private void init(final Callable<R> callable,
+                      final Supplier<Collection<Interceptor>> interceptorsSupplier,
+                      final Function<Exception, E> changeException) {
         this.getFunction = consumer -> {
             try {
                 return callable.call();
