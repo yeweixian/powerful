@@ -50,6 +50,18 @@ public final class HttpInvoker extends AbstractInvoker<String, Exception> {
         }
     };
 
+    private static final Interceptor HTTP_CALLTIME_INTERCEPTOR = new Interceptor() {
+        @Override
+        protected <R> R intercept(Invocation<R> invocation) throws Exception {
+            final long beginTime = System.currentTimeMillis();
+            final R result = invocation.proceed();
+            final long endTime = System.currentTimeMillis();
+            LogUtils.info(log, "httpCallTime", "beginTime:{}ms, endTime:{}ms, runTime:{}ms",
+                    beginTime, endTime, (endTime - beginTime));
+            return result;
+        }
+    };
+
     private static final Interceptor HTTP_PROLOG_INTERCEPTOR = new Interceptor() {
         @Override
         protected <R> R intercept(Invocation<R> invocation) throws Exception {
@@ -76,7 +88,8 @@ public final class HttpInvoker extends AbstractInvoker<String, Exception> {
 
     @Override
     protected <C extends Context> Collection<Interceptor> logicInterceptors(C context) {
-        return Lists.newArrayList(HTTP_PROLOG_INTERCEPTOR);
+        return Lists.newArrayList(HTTP_CALLTIME_INTERCEPTOR, HTTP_PROLOG_INTERCEPTOR);
+        //return Lists.newArrayList(HTTP_PROLOG_INTERCEPTOR);
     }
 
     @Override
