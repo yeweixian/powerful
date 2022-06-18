@@ -10,6 +10,21 @@ public class HttpTest {
     private static final HttpInvoker httpInvoker = new HttpInvoker();
 
     @Test
+    public void testHttpDome() {
+        Integer integer = change();
+        System.out.println(integer);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <R> R change() {
+        return (R) getInteger();
+    }
+
+    public Integer getInteger() {
+        return null;
+    }
+
+    @Test
     public void testHttpDome1() {
         HttpUriRequest request = RequestBuilder
                 .get("https://api.hearthstonejson.com/v1/latest/zhCN/cards.collectible.json")
