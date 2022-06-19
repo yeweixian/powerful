@@ -1,56 +1,84 @@
 package com.dangerye.powerful;
 
 import com.alibaba.fastjson.JSON;
-import com.dangerye.powerful.collection.CollectionInvoker;
+import com.dangerye.powerful.communicate.AbstractCollectionInvoker;
+import com.dangerye.powerful.communicate.Invoker;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public class CollectionInvokerTest {
 
+    private static final TestCollectionInvoker testCollectionInvoker = new TestCollectionInvoker();
+
     @Test
     public void testInvoker() {
-        final ArrayList<Integer> integerList = Lists.newArrayList();
+        final List<Item> list = Lists.newArrayList();
         for (int i = 0; i < 10; i++) {
-            integerList.add(RandomUtils.nextInt(0, 10));
+            list.add(Item.builder().value(RandomUtils.nextInt(0, 10)).build());
         }
-        final List<Item> list = CollectionInvoker.changeList(integerList,
-                item -> Item.builder().value(item).build());
         System.out.println("before invoke: " + JSON.toJSONString(list));
-        final CollectionInvoker.AbstractFilter<Item, Map<String, Object>> filter
-                = new CollectionInvoker.AbstractFilter<Item, Map<String, Object>>() {
-            @Override
-            protected boolean doFilter(Item item, Map<String, Object> context) {
-                return item.getValue() % 3 != 0;
-            }
-        };
-        final CollectionInvoker.InvokerInterceptor<Item, Map<String, Object>> interceptor
-                = new CollectionInvoker.InvokerInterceptor<Item, Map<String, Object>>() {
-            @Override
-            protected void intercept(CollectionInvoker.Invocation<Item, Map<String, Object>> invocation) {
-                final int beforeSum = invocation.getCollection().stream().mapToInt(Item::getValue).sum();
-                invocation.getContext().put("beforeSum", beforeSum);
-                invocation.proceed();
-                final int afterSum = invocation.getCollection().stream().mapToInt(Item::getValue).sum();
-                invocation.getContext().put("afterSum", afterSum);
-            }
-        };
-        final HashMap<String, Object> context = Maps.newHashMap();
-        final CollectionInvoker<Item, Map<String, Object>> invoker = CollectionInvoker.<Item, Map<String, Object>>builder()
-                .interceptors(Lists.newArrayList(interceptor))
-                .filters(Lists.newArrayList(filter))
+        final TestCollectionContext context = TestCollectionContext.builder()
+                .businessEvent("testBusinessEvent")
                 .build();
-        invoker.invoke(list, context);
+        testCollectionInvoker.execute(list, context);
         System.out.println("after invoke: " + JSON.toJSONString(list));
         System.out.println("context: " + JSON.toJSONString(context));
+    }
+
+    @Data
+    @Builder
+    public static final class TestCollectionContext implements Invoker.CollectionContext {
+        private String businessEvent;
+        private String beforeSum;
+        private String afterSum;
+
+        @Override
+        public String getBusinessEvent() {
+            return businessEvent;
+        }
+    }
+
+    public static final class TestCollectionInvoker extends AbstractCollectionInvoker<Item, TestCollectionContext> {
+        @Override
+        protected Collection<CollectionInterceptor<Item, TestCollectionContext>> collectionBusinessInterceptors(TestCollectionContext context) {
+            return Lists.newArrayList(new TestCollectionInterceptor());
+        }
+
+        @Override
+        protected Collection<CollectionFilter<Item, TestCollectionContext>> collectionBusinessFilters(TestCollectionContext context) {
+            return Lists.newArrayList(new TestCollectionFilter(), new TestCollectionFilter1());
+        }
+    }
+
+    public static final class TestCollectionInterceptor extends Invoker.CollectionInterceptor<Item, TestCollectionContext> {
+        @Override
+        protected void intercept(Invoker.CollectionInvocation<Item, TestCollectionContext> invocation) {
+            final int beforeSum = invocation.getCollection().stream().mapToInt(Item::getValue).sum();
+            invocation.getContext().setBeforeSum(String.valueOf(beforeSum));
+            invocation.proceed();
+            final int afterSum = invocation.getCollection().stream().mapToInt(Item::getValue).sum();
+            invocation.getContext().setAfterSum(String.valueOf(afterSum));
+        }
+    }
+
+    public static final class TestCollectionFilter extends Invoker.CollectionFilter<Item, TestCollectionContext> {
+        @Override
+        protected boolean doFilter(Item item, TestCollectionContext context) {
+            return item.getValue() % 3 != 0;
+        }
+    }
+
+    public static final class TestCollectionFilter1 extends Invoker.CollectionFilter<Item, TestCollectionContext> {
+        @Override
+        protected boolean doFilter(Item item, TestCollectionContext context) {
+            return item.getValue() % 2 != 0;
+        }
     }
 
     @Data

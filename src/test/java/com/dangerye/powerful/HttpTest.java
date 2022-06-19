@@ -1,5 +1,6 @@
 package com.dangerye.powerful;
 
+import com.dangerye.powerful.communicate.http.HttpContext;
 import com.dangerye.powerful.communicate.http.HttpInvoker;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
@@ -29,10 +30,11 @@ public class HttpTest {
         HttpUriRequest request = RequestBuilder
                 .get("https://api.hearthstonejson.com/v1/latest/zhCN/cards.collectible.json")
                 .build();
-        final HttpInvoker.HttpContext httpContext = HttpInvoker.HttpContext.builder()
+        final HttpContext context = HttpContext.builder()
+                .supplier("HttpTest.testHttpDome1")
                 .httpRequest(request)
                 .build();
-        String resp = httpInvoker.get(httpContext);
+        String resp = httpInvoker.get(context);
         System.out.println("resp" + resp);
     }
 
@@ -45,10 +47,11 @@ public class HttpTest {
                 .addParameter("Region", "ALL")
                 .addParameter("TimeRange", "LAST_30_DAYS")
                 .build();
-        final HttpInvoker.HttpContext httpContext = HttpInvoker.HttpContext.builder()
+        final HttpContext context = HttpContext.builder()
+                .supplier("HttpTest.testHttpDome2")
                 .httpRequest(request)
                 .build();
-        String resp = httpInvoker.get(httpContext);
+        String resp = httpInvoker.get(context);
         System.out.println("resp" + resp);
     }
 
@@ -58,14 +61,15 @@ public class HttpTest {
         HttpUriRequest request = RequestBuilder
                 .get("http://127.0.0.1:8080/user/sayHello?msg=dangerye")
                 .build();
-        final HttpInvoker.HttpContext httpContext = HttpInvoker.HttpContext.builder()
+        final HttpContext context = HttpContext.builder()
+                .supplier("HttpTest.testSayHello")
                 .httpRequest(request)
                 .build();
         for (int i = 0; i < 3; i++) {
-            httpInvoker.get(httpContext);
-            httpInvoker.get(httpContext);
-            httpInvoker.get(httpContext);
-            httpInvoker.get(httpContext);
+            httpInvoker.get(context);
+            httpInvoker.get(context);
+            httpInvoker.get(context);
+            httpInvoker.get(context);
             Thread.sleep(4000);
         }
     }
