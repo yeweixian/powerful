@@ -20,7 +20,7 @@ public interface Invoker {
         String getBusinessEvent();
     }
 
-    abstract class CollectionFilter<T, C> implements Predicate<T> {
+    abstract class CollectionFilter<T, C extends CollectionContext> implements Predicate<T> {
         private final ThreadLocal<C> threadLocal = new ThreadLocal<>();
 
         void setContext(final C context) {
@@ -45,14 +45,14 @@ public interface Invoker {
     }
 
     abstract class Interceptor {
-        protected abstract <R> R intercept(final Invocation<R> invocation) throws Exception;
+        protected abstract <R, C extends Context> R intercept(final Invocation<R, C> invocation) throws Exception;
 
-        <R> Callable<R> plugin(final Callable<R> plugin, final Context context) {
+        <R, C extends Context> Callable<R> plugin(final Callable<R> plugin, final C context) {
             return () -> intercept(new Invocation<>(plugin, context));
         }
     }
 
-    abstract class CollectionInterceptor<T, C> {
+    abstract class CollectionInterceptor<T, C extends CollectionContext> {
         protected abstract void intercept(final CollectionInvocation<T, C> invocation);
 
         Consumer<Collection<T>> plugin(final Consumer<Collection<T>> consumer, final C context) {
@@ -60,16 +60,16 @@ public interface Invoker {
         }
     }
 
-    final class Invocation<R> {
+    final class Invocation<R, C extends Context> {
         private final Callable<R> callable;
-        private final Context context;
+        private final C context;
 
-        private Invocation(final Callable<R> callable, final Context context) {
+        private Invocation(Callable<R> callable, C context) {
             this.callable = callable;
             this.context = context;
         }
 
-        public Context getContext() {
+        public C getContext() {
             return context;
         }
 
@@ -78,7 +78,7 @@ public interface Invoker {
         }
     }
 
-    final class CollectionInvocation<T, C> {
+    final class CollectionInvocation<T, C extends CollectionContext> {
         private final Consumer<Collection<T>> consumer;
         private final Collection<T> collection;
         private final C context;
