@@ -16,6 +16,10 @@ public interface Invoker {
         Map<String, Object> getParamMap();
     }
 
+    interface CollectionContext {
+        String getBusinessEvent();
+    }
+
     abstract class CollectionFilter<T, C> implements Predicate<T> {
         private final ThreadLocal<C> threadLocal = new ThreadLocal<>();
 
