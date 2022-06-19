@@ -1,13 +1,12 @@
 package com.dangerye.powerful.communicate;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class AbstractInvoker<E extends Throwable> {
+public abstract class AbstractInvoker<E extends Throwable> implements Invoker {
 
     private final GetFunction<E> getFunction;
     private final ThrowFunction<E> throwFunction;
@@ -83,12 +82,6 @@ public abstract class AbstractInvoker<E extends Throwable> {
                 .orElseThrow(() -> function.apply(bridging.exception));
     }
 
-    public interface Context {
-        String getSupplier();
-
-        Map<String, Object> getParamMap();
-    }
-
     @FunctionalInterface
     private interface GetFunction<E extends Throwable> {
         <C extends Context, R> R handle(final C context, final Consumer<E> consumer);
@@ -101,31 +94,5 @@ public abstract class AbstractInvoker<E extends Throwable> {
 
     private static final class ExceptionBridging<E> {
         private E exception;
-    }
-
-    public static abstract class Interceptor {
-        protected abstract <R> R intercept(final Invocation<R> invocation) throws Exception;
-
-        private <R> Callable<R> plugin(final Callable<R> plugin, final Context context) {
-            return () -> intercept(new Invocation<>(plugin, context));
-        }
-    }
-
-    public static final class Invocation<R> {
-        private final Callable<R> callable;
-        private final Context context;
-
-        private Invocation(final Callable<R> callable, final Context context) {
-            this.callable = callable;
-            this.context = context;
-        }
-
-        public Context getContext() {
-            return context;
-        }
-
-        public R proceed() throws Exception {
-            return callable.call();
-        }
     }
 }
