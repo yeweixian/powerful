@@ -16,17 +16,17 @@ public abstract class Trial02<T, C extends InvokeContext<T>> {
                 Assert.notNull(context, "context must not be null");
                 Assert.notNull(context.getTarget(), "target must not be null");
                 final Collection<Interceptor<C>> interceptors = invokeInterceptors(context);
-                try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(interceptors, context))) {
+                try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(interceptors))) {
                     closeableContext.configure(context);
                     final CodeFunction<C> core = Trial02.this::coreCode;
-                    final CodeFunction<C> proxy = getProxy(core, interceptors, context);
+                    final CodeFunction<C> proxy = getProxy(core, interceptors);
                     return proxy.execute(context);
                 }
             }
         };
     }
 
-    private Collection<Configure<C>> getConfigures(final Collection<Interceptor<C>> interceptors, final C context) {
+    private Collection<Configure<C>> getConfigures(final Collection<Interceptor<C>> interceptors) {
         final Collection<Configure<C>> result = new ArrayList<>();
         if (interceptors != null) {
             for (Interceptor<C> interceptor : interceptors) {
@@ -38,7 +38,7 @@ public abstract class Trial02<T, C extends InvokeContext<T>> {
         return result;
     }
 
-    private CodeFunction<C> getProxy(final CodeFunction<C> codeFunction, final Collection<Interceptor<C>> interceptors, final C context) {
+    private CodeFunction<C> getProxy(final CodeFunction<C> codeFunction, final Collection<Interceptor<C>> interceptors) {
         CodeFunction<C> plugin = codeFunction;
         if (interceptors != null) {
             for (Interceptor<C> interceptor : interceptors) {
