@@ -3,20 +3,20 @@ package com.dangerye.powerful.trial;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public abstract class Trial01<P, C> {
+public abstract class Trial01<C> {
 
-    private final CodeFunction<P, C> codeFunction;
+    private final CodeFunction<C> codeFunction;
 
     protected Trial01() {
-        this.codeFunction = new CodeFunction<P, C>() {
+        this.codeFunction = new CodeFunction<C>() {
             @Override
-            public <R> R execute(P param, C context) {
+            public <P, R> R execute(P param, C context) {
                 R result = null;
                 Exception exception = null;
-                final Collection<Interceptor<P, R, C>> interceptors = interceptorCollection(param, context);
+                final Collection<Interceptor<C>> interceptors = interceptorCollection(param, context);
                 final Collection<Configure<C>> collection = new ArrayList<>();
                 if (interceptors != null) {
-                    for (Interceptor<P, R, C> interceptor : interceptors) {
+                    for (Interceptor<C> interceptor : interceptors) {
                         if (interceptor != null) {
                             collection.add(interceptor);
                         }
@@ -25,7 +25,7 @@ public abstract class Trial01<P, C> {
                 try (CloseableContext<C> closeableContext = new CloseableContext<>(collection)) {
                     closeableContext.configure(context);
                     if (interceptors != null) {
-                        for (Interceptor<P, R, C> interceptor : interceptors) {
+                        for (Interceptor<C> interceptor : interceptors) {
                             if (interceptor != null) {
                                 param = interceptor.before(param, context);
                             }
@@ -36,7 +36,7 @@ public abstract class Trial01<P, C> {
                     exception = e;
                 }
                 if (interceptors != null) {
-                    for (Interceptor<P, R, C> interceptor : interceptors) {
+                    for (Interceptor<C> interceptor : interceptors) {
                         if (interceptor != null) {
                             interceptor.after(result, context, exception);
                         }
@@ -47,22 +47,22 @@ public abstract class Trial01<P, C> {
         };
     }
 
-    protected abstract <R> R coreCode(P param, C context) throws Exception;
+    protected abstract <P, R> R coreCode(P param, C context) throws Exception;
 
-    protected abstract <R> Collection<Interceptor<P, R, C>> interceptorCollection(P param, C context);
+    protected abstract <P> Collection<Interceptor<C>> interceptorCollection(P param, C context);
 
     public interface Configure<C> extends AutoCloseable {
         void configure(C context);
     }
 
-    public interface Interceptor<P, R, C> extends Configure<C> {
-        P before(P param, C context);
+    public interface Interceptor<C> extends Configure<C> {
+        <P> P before(P param, C context);
 
-        void after(R result, C context, Exception exception);
+        <R> void after(R result, C context, Exception exception);
     }
 
-    private interface CodeFunction<P, C> {
-        <R> R execute(P param, C context);
+    private interface CodeFunction<C> {
+        <P, R> R execute(P param, C context);
     }
 
     private static final class CloseableContext<C> implements Configure<C> {
