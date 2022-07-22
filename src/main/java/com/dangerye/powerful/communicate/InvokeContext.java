@@ -1,4 +1,4 @@
-package com.dangerye.powerful.trial;
+package com.dangerye.powerful.communicate;
 
 public interface InvokeContext<T> {
     String getInvokeEvent();
