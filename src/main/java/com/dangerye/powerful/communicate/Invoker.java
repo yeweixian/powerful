@@ -27,6 +27,10 @@ public abstract class Invoker<T, C extends InvokeContext<? extends T>> {
         };
     }
 
+    protected final <R> R execute(C context) throws Exception {
+        return codeFunction.execute(context);
+    }
+
     protected final Collection<Configure<C>> getConfigures(final Collection<? extends Configure<C>> collection) {
         final Collection<Configure<C>> result = new ArrayList<>();
         if (collection != null) {
