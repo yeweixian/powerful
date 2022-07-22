@@ -49,11 +49,13 @@ public final class HttpInvoker extends AbstractInvoker<Map<String, Object>, Http
         protected <R> R intercept(Invocation<HttpContext> invocation) throws Exception {
             final HttpContext context = invocation.getContext();
             final long beginTime = System.currentTimeMillis();
-            final R result = invocation.proceed();
-            final long endTime = System.currentTimeMillis();
-            log.info("[CALL_TIME_INTERCEPTOR] msg= invokeEvent:{} - beginTime:{}ms, endTime:{}ms, runTime:{}",
-                    context.getInvokeEvent(), beginTime, endTime, (endTime - beginTime));
-            return result;
+            try {
+                return invocation.proceed();
+            } finally {
+                final long endTime = System.currentTimeMillis();
+                log.info("[CALL_TIME_INTERCEPTOR] msg= invokeEvent:{} - beginTime:{}ms, endTime:{}ms, runTime:{}",
+                        context.getInvokeEvent(), beginTime, endTime, (endTime - beginTime));
+            }
         }
 
         @Override
