@@ -79,12 +79,36 @@ public class CollectionInvokerTest {
 
     public static final class TestCollectionFilter extends Invoker.CollectionFilter<Item, TestCollectionContext> {
         @Override
+        public void configure(TestCollectionContext context) {
+            System.out.println("configure : TestCollectionFilter");
+            super.configure(context);
+        }
+
+        @Override
+        public void close() throws Exception {
+            System.out.println("close : TestCollectionFilter");
+            super.close();
+        }
+
+        @Override
         protected boolean doFilter(Item item, TestCollectionContext context) {
             return item.getValue() % 3 != 0;
         }
     }
 
     public static final class TestCollectionFilter1 extends Invoker.CollectionFilter<Item, TestCollectionContext> {
+        @Override
+        public void configure(TestCollectionContext context) {
+            System.out.println("configure : TestCollectionFilter1");
+            super.configure(context);
+        }
+
+        @Override
+        public void close() throws Exception {
+            System.out.println("close : TestCollectionFilter1");
+            super.close();
+        }
+
         @Override
         protected boolean doFilter(Item item, TestCollectionContext context) {
             return item.getValue() % 2 != 0;
