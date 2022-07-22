@@ -3,7 +3,6 @@ package com.dangerye.powerful.communicate.http;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.dangerye.powerful.communicate.AbstractInvoker;
-import com.dangerye.powerful.utils.LogUtils;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
@@ -17,11 +16,12 @@ import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 @Slf4j
-public final class HttpInvoker extends AbstractInvoker<HttpContext, Exception> {
+public final class HttpInvoker extends AbstractInvoker<Map<String, Object>, HttpContext, Exception> {
 
     private static final Supplier<CloseableHttpClient> HTTP_CLIENT_SUPPLIER = () -> {
         RequestConfig requestConfig = RequestConfig.custom()
@@ -44,35 +44,64 @@ public final class HttpInvoker extends AbstractInvoker<HttpContext, Exception> {
         }
     };
 
-    private static final Interceptor CALL_TIME_INTERCEPTOR = new Interceptor() {
+    private static final Interceptor<HttpContext> CALL_TIME_INTERCEPTOR = new Interceptor<HttpContext>() {
         @Override
-        protected <R, C extends Context> R intercept(Invocation<R, C> invocation) throws Exception {
-            final C context = invocation.getContext();
+        protected <R> R intercept(Invocation<HttpContext> invocation) throws Exception {
+            final HttpContext context = invocation.getContext();
             final long beginTime = System.currentTimeMillis();
             final R result = invocation.proceed();
             final long endTime = System.currentTimeMillis();
-            LogUtils.info(log, context.getSupplier() + ".invoke",
-                    "beginTime:{}ms, endTime:{}ms, runTime:{}ms",
-                    beginTime, endTime, (endTime - beginTime));
+            log.info("[CALL_TIME_INTERCEPTOR] msg= invokeEvent:{} - beginTime:{}ms, endTime:{}ms, runTime:{}",
+                    context.getInvokeEvent(), beginTime, endTime, (endTime - beginTime));
             return result;
+        }
+
+        @Override
+        public void configure(HttpContext context) {
+            System.out.println("configure : CALL_TIME_INTERCEPTOR");
+        }
+
+        @Override
+        public void close() throws Exception {
+            System.out.println("close : CALL_TIME_INTERCEPTOR");
         }
     };
 
-    private static final Interceptor PRO_LOG_INTERCEPTOR = new Interceptor() {
+    private static final Interceptor<HttpContext> CALL_LOG_INTERCEPTOR = new Interceptor<HttpContext>() {
         @Override
-        protected <R, C extends Context> R intercept(Invocation<R, C> invocation) throws Exception {
-            final C context = invocation.getContext();
+        protected <R> R intercept(Invocation<HttpContext> invocation) throws Exception {
+            final HttpContext context = invocation.getContext();
             try {
-                return invocation.proceed();
+                final R result = invocation.proceed();
+                log.info("[CALL_LOG_INTERCEPTOR] msg= invokeEvent:{} - param:{}, result:{}",
+                        context.getInvokeEvent(),
+                        JSON.toJSONString(context.getTarget(), SerializerFeature.DisableCircularReferenceDetect),
+                        JSON.toJSONString(result, SerializerFeature.DisableCircularReferenceDetect));
+                return result;
             } catch (Exception e) {
-                LogUtils.warn(log, context.getSupplier() + ".invokeFail",
-                        "param:{}",
-                        JSON.toJSONString(context.getParamMap(), SerializerFeature.DisableCircularReferenceDetect),
+                log.warn("[CALL_LOG_INTERCEPTOR] msg= invokeEvent:{} run fail - param:{}",
+                        context.getInvokeEvent(),
+                        JSON.toJSONString(context.getTarget(), SerializerFeature.DisableCircularReferenceDetect),
                         e);
                 throw e;
             }
         }
+
+        @Override
+        public void configure(HttpContext context) {
+            System.out.println("configure : CALL_LOG_INTERCEPTOR");
+        }
+
+        @Override
+        public void close() throws Exception {
+            System.out.println("close : CALL_LOG_INTERCEPTOR");
+        }
     };
+
+    @Override
+    protected Exception transformException(HttpContext context, Exception exception) {
+        return exception;
+    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -85,12 +114,7 @@ public final class HttpInvoker extends AbstractInvoker<HttpContext, Exception> {
     }
 
     @Override
-    protected Collection<Interceptor> logicInterceptors(HttpContext context) {
-        return Lists.newArrayList(CALL_TIME_INTERCEPTOR, PRO_LOG_INTERCEPTOR);
-    }
-
-    @Override
-    protected Exception transformException(HttpContext context, Exception exception) {
-        return exception;
+    protected Collection<Interceptor<HttpContext>> invokeInterceptors(HttpContext context) {
+        return Lists.newArrayList(CALL_TIME_INTERCEPTOR, CALL_LOG_INTERCEPTOR);
     }
 }
