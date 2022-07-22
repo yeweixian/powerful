@@ -16,6 +16,7 @@ public abstract class Invoker<T, C extends InvokeContext<? extends T>> {
             public <R> R execute(C context) throws Exception {
                 Assert.notNull(context, "context must not be null");
                 Assert.notNull(context.getTarget(), "target must not be null");
+                Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
                 final Collection<Interceptor<C>> interceptors = invokeInterceptors(context);
                 try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(interceptors))) {
                     closeableContext.configure(context);
