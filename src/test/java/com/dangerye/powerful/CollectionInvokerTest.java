@@ -2,6 +2,7 @@ package com.dangerye.powerful;
 
 import com.alibaba.fastjson.JSON;
 import com.dangerye.powerful.communicate.AbstractCollectionInvoker;
+import com.dangerye.powerful.communicate.InvokeContext;
 import com.dangerye.powerful.communicate.Invoker;
 import com.google.common.collect.Lists;
 import lombok.Builder;
@@ -20,50 +21,59 @@ public class CollectionInvokerTest {
     public void testInvoker() {
         final List<Item> list = Lists.newArrayList();
         for (int i = 0; i < 10; i++) {
-            list.add(Item.builder().value(RandomUtils.nextInt(0, 10)).build());
+            list.add(Item.builder().value(RandomUtils.nextInt(0, 20)).build());
         }
         System.out.println("before invoke: " + JSON.toJSONString(list));
         final TestCollectionContext context = TestCollectionContext.builder()
-                .businessEvent("testBusinessEvent")
+                .invokeEvent("testBusinessEvent")
+                .target(list)
                 .build();
-        testCollectionInvoker.execute(list, context);
+        testCollectionInvoker.invoke(context);
         System.out.println("after invoke: " + JSON.toJSONString(list));
         System.out.println("context: " + JSON.toJSONString(context));
     }
 
     @Data
     @Builder
-    public static final class TestCollectionContext implements Invoker.CollectionContext {
-        private String businessEvent;
+    public static final class TestCollectionContext implements InvokeContext<Collection<Item>> {
+        private String invokeEvent;
+        private Collection<Item> target;
         private String beforeSum;
         private String afterSum;
-
-        @Override
-        public String getBusinessEvent() {
-            return businessEvent;
-        }
     }
 
-    public static final class TestCollectionInvoker extends AbstractCollectionInvoker<Item, TestCollectionContext> {
+    public static final class TestCollectionInvoker extends AbstractCollectionInvoker<Item, Collection<Item>, TestCollectionContext> {
         @Override
-        protected Collection<CollectionInterceptor<Item, TestCollectionContext>> collectionBusinessInterceptors(TestCollectionContext context) {
+        protected Collection<Interceptor<TestCollectionContext>> invokeInterceptors(TestCollectionContext context) {
             return Lists.newArrayList(new TestCollectionInterceptor());
         }
 
         @Override
-        protected Collection<CollectionFilter<Item, TestCollectionContext>> collectionBusinessFilters(TestCollectionContext context) {
+        protected Collection<CollectionFilter<Item, TestCollectionContext>> invokeCollectionFilters(TestCollectionContext context) {
             return Lists.newArrayList(new TestCollectionFilter(), new TestCollectionFilter1());
         }
     }
 
-    public static final class TestCollectionInterceptor extends Invoker.CollectionInterceptor<Item, TestCollectionContext> {
+    public static final class TestCollectionInterceptor extends Invoker.Interceptor<TestCollectionContext> {
         @Override
-        protected void intercept(Invoker.CollectionInvocation<Item, TestCollectionContext> invocation) {
-            final int beforeSum = invocation.getCollection().stream().mapToInt(Item::getValue).sum();
-            invocation.getContext().setBeforeSum(String.valueOf(beforeSum));
-            invocation.proceed();
-            final int afterSum = invocation.getCollection().stream().mapToInt(Item::getValue).sum();
-            invocation.getContext().setAfterSum(String.valueOf(afterSum));
+        public void configure(TestCollectionContext context) {
+            System.out.println("configure : TestCollectionInterceptor");
+        }
+
+        @Override
+        protected <R> R intercept(Invoker.Invocation<TestCollectionContext> invocation) throws Exception {
+            final TestCollectionContext context = invocation.getContext();
+            final int beforeSum = context.getTarget().stream().mapToInt(Item::getValue).sum();
+            context.setBeforeSum(String.valueOf(beforeSum));
+            final R result = invocation.proceed();
+            final int afterSum = context.getTarget().stream().mapToInt(Item::getValue).sum();
+            context.setAfterSum(String.valueOf(afterSum));
+            return result;
+        }
+
+        @Override
+        public void close() throws Exception {
+            System.out.println("close : TestCollectionInterceptor");
         }
     }
 
