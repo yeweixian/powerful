@@ -1,11 +1,12 @@
 package com.dangerye.powerful.trial;
 
+import org.apache.commons.collections4.Predicate;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-public abstract class Trial02<T, C extends InvokeContext<T>> {
+public abstract class Trial02<T, C extends InvokeContext<? extends T>> {
 
     private final CodeFunction<C> codeFunction;
 
@@ -26,12 +27,12 @@ public abstract class Trial02<T, C extends InvokeContext<T>> {
         };
     }
 
-    private Collection<Configure<C>> getConfigures(final Collection<Interceptor<C>> interceptors) {
+    protected final Collection<Configure<C>> getConfigures(final Collection<? extends Configure<C>> collection) {
         final Collection<Configure<C>> result = new ArrayList<>();
-        if (interceptors != null) {
-            for (Interceptor<C> interceptor : interceptors) {
-                if (interceptor != null) {
-                    result.add(interceptor);
+        if (collection != null) {
+            for (Configure<C> configure : collection) {
+                if (configure != null) {
+                    result.add(configure);
                 }
             }
         }
@@ -63,10 +64,10 @@ public abstract class Trial02<T, C extends InvokeContext<T>> {
         <R> R execute(C context) throws Exception;
     }
 
-    private static final class CloseableContext<C> implements Configure<C> {
+    public static final class CloseableContext<C> implements Configure<C> {
         private final Collection<Configure<C>> collection;
 
-        private CloseableContext(Collection<Configure<C>> collection) {
+        public CloseableContext(Collection<Configure<C>> collection) {
             this.collection = collection;
         }
 
@@ -91,6 +92,33 @@ public abstract class Trial02<T, C extends InvokeContext<T>> {
                 }
             }
         }
+    }
+
+    public static abstract class CollectionFilter<I, C extends InvokeContext<? extends Collection<? extends I>>>
+            implements Predicate<I>, Configure<C> {
+        private final ThreadLocal<C> threadLocal = new ThreadLocal<>();
+
+        @Override
+        public void configure(C context) {
+            threadLocal.set(context);
+        }
+
+        @Override
+        public void close() throws Exception {
+            threadLocal.remove();
+        }
+
+        @Override
+        public boolean evaluate(I item) {
+            if (item == null) {
+                return false;
+            }
+            final C context = threadLocal.get();
+            Assert.notNull(context, "context must not be null");
+            return doFilter(item, context);
+        }
+
+        protected abstract boolean doFilter(I item, C context);
     }
 
     public static abstract class Interceptor<C> implements Configure<C> {
