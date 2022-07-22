@@ -1,39 +1,41 @@
 package com.dangerye.powerful.communicate;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.collections4.PredicateUtils;
-import org.springframework.util.Assert;
 
 import java.util.Collection;
-import java.util.Objects;
-import java.util.function.Consumer;
 
-public abstract class AbstractCollectionInvoker<T, C extends Invoker.CollectionContext> implements Invoker {
+@Slf4j
+public abstract class AbstractCollectionInvoker<I, T extends Iterable<? extends I>, C extends InvokeContext<? extends T>> extends Invoker<T, C> {
 
-    protected abstract Collection<CollectionInterceptor<T, C>> collectionBusinessInterceptors(final C context);
+    protected abstract Collection<CollectionFilter<I, C>> invokeCollectionFilters(final C context);
 
-    protected abstract Collection<CollectionFilter<T, C>> collectionBusinessFilters(final C context);
-
-    public final void execute(Collection<T> coll, C context) {
-        Assert.notNull(coll, "collection must not be null");
-        Assert.notNull(context, "context must not be null");
-        final Collection<CollectionFilter<T, C>> filters = CollectionUtils.emptyIfNull(collectionBusinessFilters(context));
-        Consumer<Collection<T>> plugin = collection -> {
-            filters.stream().filter(Objects::nonNull)
-                    .forEach(item -> item.setContext(context));
-            try {
-                final Predicate<T> allPredicate = PredicateUtils.allPredicate(filters);
-                CollectionUtils.filter(collection, allPredicate);
-            } finally {
-                filters.stream().filter(Objects::nonNull)
-                        .forEach(CollectionFilter::removeContext);
-            }
-        };
-        final Collection<CollectionInterceptor<T, C>> interceptors = CollectionUtils.emptyIfNull(collectionBusinessInterceptors(context));
-        for (CollectionInterceptor<T, C> interceptor : interceptors) {
-            plugin = interceptor.plugin(plugin, context);
+    @Override
+    protected <R> R coreCode(C context) throws Exception {
+        final Iterable<? extends I> target = context.getTarget();
+        final Collection<CollectionFilter<I, C>> collectionFilters = invokeCollectionFilters(context);
+        try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(collectionFilters))) {
+            closeableContext.configure(context);
+            final Predicate<I> allPredicate = PredicateUtils.allPredicate(collectionFilters);
+            CollectionUtils.filter(target, allPredicate);
         }
-        plugin.accept(coll);
+        return null;
+    }
+
+    private void writeLog(C context, Exception exception) {
+        if (log.isWarnEnabled()) {
+            final String invokeEvent = context.getInvokeEvent();
+            log.warn("[CollectionInvoker.Fail] msg = invokeEvent:{} invoker fail. ", invokeEvent, exception);
+        }
+    }
+
+    public final void invoke(final C context) {
+        try {
+            super.execute(context);
+        } catch (Exception e) {
+            writeLog(context, e);
+        }
     }
 }

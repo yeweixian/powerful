@@ -99,7 +99,7 @@ public abstract class Invoker<T, C extends InvokeContext<? extends T>> {
         }
     }
 
-    public static abstract class CollectionFilter<I, C extends InvokeContext<? extends Collection<? extends I>>>
+    public static abstract class CollectionFilter<I, C extends InvokeContext<? extends Iterable<? extends I>>>
             implements Predicate<I>, Configure<C> {
         private final ThreadLocal<C> threadLocal = new ThreadLocal<>();
 
