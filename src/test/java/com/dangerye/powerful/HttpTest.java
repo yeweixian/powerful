@@ -31,7 +31,7 @@ public class HttpTest {
                 .get("https://api.hearthstonejson.com/v1/latest/zhCN/cards.collectible.json")
                 .build();
         final HttpContext context = HttpContext.builder()
-                .supplier("HttpTest.testHttpDome1")
+                .invokeEvent("HttpTest.testHttpDome1")
                 .httpRequest(request)
                 .build();
         String resp = httpInvoker.get(context);
@@ -48,7 +48,7 @@ public class HttpTest {
                 .addParameter("TimeRange", "LAST_30_DAYS")
                 .build();
         final HttpContext context = HttpContext.builder()
-                .supplier("HttpTest.testHttpDome2")
+                .invokeEvent("HttpTest.testHttpDome2")
                 .httpRequest(request)
                 .build();
         String resp = httpInvoker.get(context);
@@ -62,7 +62,7 @@ public class HttpTest {
                 .get("http://127.0.0.1:8080/user/sayHello?msg=dangerye")
                 .build();
         final HttpContext context = HttpContext.builder()
-                .supplier("HttpTest.testSayHello")
+                .invokeEvent("HttpTest.testSayHello")
                 .httpRequest(request)
                 .build();
         for (int i = 0; i < 3; i++) {
