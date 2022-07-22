@@ -8,6 +8,8 @@ import java.util.function.Function;
 @Slf4j
 public abstract class AbstractInvoker<T, C extends InvokeContext<? extends T>, E extends Throwable> extends Invoker<T, C> {
 
+    protected abstract E transformException(final C context, final Exception exception);
+
     private void writeLog(C context, Exception exception) {
         if (log.isWarnEnabled()) {
             final String invokeEvent = context.getInvokeEvent();
@@ -62,6 +64,4 @@ public abstract class AbstractInvoker<T, C extends InvokeContext<? extends T>, E
             throw function.apply(null);
         }
     }
-
-    protected abstract E transformException(final C context, final Exception exception);
 }

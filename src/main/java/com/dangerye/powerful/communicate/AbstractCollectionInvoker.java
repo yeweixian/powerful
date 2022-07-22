@@ -12,6 +12,13 @@ public abstract class AbstractCollectionInvoker<I, T extends Iterable<? extends 
 
     protected abstract Collection<CollectionFilter<I, C>> invokeCollectionFilters(final C context);
 
+    private void writeLog(C context, Exception exception) {
+        if (log.isWarnEnabled()) {
+            final String invokeEvent = context.getInvokeEvent();
+            log.warn("[CollectionInvoker.Fail] msg = invokeEvent:{} invoker fail. ", invokeEvent, exception);
+        }
+    }
+
     @Override
     protected <R> R coreCode(C context) throws Exception {
         final Iterable<? extends I> target = context.getTarget();
@@ -22,13 +29,6 @@ public abstract class AbstractCollectionInvoker<I, T extends Iterable<? extends 
             CollectionUtils.filter(target, allPredicate);
         }
         return null;
-    }
-
-    private void writeLog(C context, Exception exception) {
-        if (log.isWarnEnabled()) {
-            final String invokeEvent = context.getInvokeEvent();
-            log.warn("[CollectionInvoker.Fail] msg = invokeEvent:{} invoker fail. ", invokeEvent, exception);
-        }
     }
 
     public final void invoke(final C context) {
