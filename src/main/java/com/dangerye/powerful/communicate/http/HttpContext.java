@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.Args;
 
 import java.util.Map;
 import java.util.Objects;
@@ -20,6 +21,7 @@ public final class HttpContext implements InvokeContext<Map<String, Object>> {
                         CloseableHttpClient httpClient,
                         ResponseHandler<String> responseHandler,
                         HttpUriRequest httpRequest) {
+        Args.notNull(httpRequest, "HTTP request");
         this.invokeEvent = invokeEvent;
         this.httpClient = httpClient;
         this.responseHandler = responseHandler;
