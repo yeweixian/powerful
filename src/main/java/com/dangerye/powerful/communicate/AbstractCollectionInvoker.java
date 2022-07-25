@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.collections4.PredicateUtils;
+import org.springframework.util.Assert;
 
 import java.util.Collection;
 
@@ -32,6 +33,9 @@ public abstract class AbstractCollectionInvoker<I, T extends Iterable<? extends 
     }
 
     public final void invoke(final C context) {
+        Assert.notNull(context, "context must not be null");
+        Assert.notNull(context.getTarget(), "target must not be null");
+        Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
         try {
             super.execute(context);
         } catch (Exception e) {
