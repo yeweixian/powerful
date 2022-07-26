@@ -6,7 +6,7 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public abstract class Invoker<T, C extends InvokeContext<? extends T>> {
+public abstract class Invoker<C> {
 
     private final CodeFunction<C> codeFunction;
 
@@ -14,9 +14,9 @@ public abstract class Invoker<T, C extends InvokeContext<? extends T>> {
         this.codeFunction = new CodeFunction<C>() {
             @Override
             public <R> R execute(C context) throws Exception {
-                Assert.notNull(context, "context must not be null");
-                Assert.notNull(context.getTarget(), "target must not be null");
-                Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
+                //Assert.notNull(context, "context must not be null");
+                //Assert.notNull(context.getTarget(), "target must not be null");
+                //Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
                 final Collection<Interceptor<C>> interceptors = invokeInterceptors(context);
                 try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(interceptors))) {
                     closeableContext.configure(context);
@@ -99,8 +99,7 @@ public abstract class Invoker<T, C extends InvokeContext<? extends T>> {
         }
     }
 
-    public static abstract class CollectionFilter<I, C extends InvokeContext<? extends Iterable<? extends I>>>
-            implements Predicate<I>, Configure<C> {
+    public static abstract class CollectionFilter<I, C> implements Predicate<I>, Configure<C> {
         private final ThreadLocal<C> threadLocal = new ThreadLocal<>();
 
         @Override
