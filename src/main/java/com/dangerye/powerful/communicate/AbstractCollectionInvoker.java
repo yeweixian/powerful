@@ -9,7 +9,7 @@ import org.springframework.util.Assert;
 import java.util.Collection;
 
 @Slf4j
-public abstract class AbstractCollectionInvoker<I, T extends Iterable<? extends I>, C extends InvokeContext<? extends T>> extends Invoker<T, C> {
+public abstract class AbstractCollectionInvoker<I, C extends InvokeContext<? extends Collection<? extends I>>> extends Invoker<C> {
 
     protected abstract Collection<CollectionFilter<I, C>> invokeCollectionFilters(final C context);
 
@@ -22,7 +22,7 @@ public abstract class AbstractCollectionInvoker<I, T extends Iterable<? extends 
 
     @Override
     protected <R> R coreCode(C context) throws Exception {
-        final Iterable<? extends I> target = context.getTarget();
+        final Collection<? extends I> target = context.getTarget();
         final Collection<CollectionFilter<I, C>> collectionFilters = invokeCollectionFilters(context);
         try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(collectionFilters))) {
             closeableContext.configure(context);
