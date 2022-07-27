@@ -11,7 +11,7 @@ import java.util.Collection;
 @Slf4j
 public abstract class AbstractCollectionInvoker<I, C extends InvokeContext<? extends Collection<? extends I>>> extends Invoker<C> {
 
-    protected abstract Collection<CollectionFilter<I, C>> invokeCollectionFilters(final C context);
+    protected abstract Collection<CollectionFilter<? super I, ? super C>> invokeCollectionFilters(final C context);
 
     private void writeLog(C context, Exception exception) {
         if (log.isWarnEnabled()) {
@@ -23,7 +23,7 @@ public abstract class AbstractCollectionInvoker<I, C extends InvokeContext<? ext
     @Override
     protected <R> R coreCode(C context) throws Exception {
         final Collection<? extends I> target = context.getTarget();
-        final Collection<CollectionFilter<I, C>> collectionFilters = invokeCollectionFilters(context);
+        final Collection<CollectionFilter<? super I, ? super C>> collectionFilters = invokeCollectionFilters(context);
         try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(collectionFilters))) {
             closeableContext.configure(context);
             final Predicate<I> allPredicate = PredicateUtils.allPredicate(collectionFilters);
