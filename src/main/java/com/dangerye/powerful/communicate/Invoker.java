@@ -5,6 +5,7 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.Callable;
 
 public abstract class Invoker<C> {
 
@@ -17,12 +18,12 @@ public abstract class Invoker<C> {
                 //Assert.notNull(context, "context must not be null");
                 //Assert.notNull(context.getTarget(), "target must not be null");
                 //Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
-                final Collection<Interceptor<C>> interceptors = invokeInterceptors(context);
-                try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(interceptors))) {
+                final Collection<Interceptor<? super C>> interceptors = invokeInterceptors(context);
+                try (CloseableContext<? super C> closeableContext = new CloseableContext<>(getConfigures(interceptors))) {
                     closeableContext.configure(context);
-                    final CodeFunction<C> core = Invoker.this::coreCode;
-                    final CodeFunction<C> proxy = getProxy(core, interceptors);
-                    return proxy.execute(context);
+                    final Callable<R> core = () -> coreCode(context);
+                    final Callable<R> proxy = getProxy(core, interceptors, context);
+                    return proxy.call();
                 }
             }
         };
@@ -32,10 +33,10 @@ public abstract class Invoker<C> {
         return codeFunction.execute(context);
     }
 
-    protected final Collection<Configure<C>> getConfigures(final Collection<? extends Configure<C>> collection) {
-        final Collection<Configure<C>> result = new ArrayList<>();
+    protected final Collection<Configure<? super C>> getConfigures(final Collection<? extends Configure<? super C>> collection) {
+        final Collection<Configure<? super C>> result = new ArrayList<>();
         if (collection != null) {
-            for (Configure<C> configure : collection) {
+            for (Configure<? super C> configure : collection) {
                 if (configure != null) {
                     result.add(configure);
                 }
@@ -44,12 +45,12 @@ public abstract class Invoker<C> {
         return result;
     }
 
-    private CodeFunction<C> getProxy(final CodeFunction<C> codeFunction, final Collection<Interceptor<C>> interceptors) {
-        CodeFunction<C> plugin = codeFunction;
+    private <R> Callable<R> getProxy(final Callable<R> codeFunction, final Collection<Interceptor<? super C>> interceptors, C context) {
+        Callable<R> plugin = codeFunction;
         if (interceptors != null) {
-            for (Interceptor<C> interceptor : interceptors) {
+            for (Interceptor<? super C> interceptor : interceptors) {
                 if (interceptor != null) {
-                    plugin = interceptor.plugin(plugin);
+                    plugin = interceptor.plugin(plugin, context);
                 }
             }
         }
@@ -58,7 +59,7 @@ public abstract class Invoker<C> {
 
     protected abstract <R> R coreCode(final C context) throws Exception;
 
-    protected abstract Collection<Interceptor<C>> invokeInterceptors(final C context);
+    protected abstract Collection<Interceptor<? super C>> invokeInterceptors(final C context);
 
     public interface Configure<C> extends AutoCloseable {
         void configure(C context);
@@ -70,16 +71,16 @@ public abstract class Invoker<C> {
     }
 
     public static final class CloseableContext<C> implements Configure<C> {
-        private final Collection<Configure<C>> collection;
+        private final Collection<Configure<? super C>> collection;
 
-        public CloseableContext(Collection<Configure<C>> collection) {
+        public CloseableContext(Collection<Configure<? super C>> collection) {
             this.collection = collection;
         }
 
         @Override
         public void configure(C context) {
             if (collection != null) {
-                for (Configure<C> configure : collection) {
+                for (Configure<? super C> configure : collection) {
                     if (configure != null) {
                         configure.configure(context);
                     }
@@ -90,7 +91,7 @@ public abstract class Invoker<C> {
         @Override
         public void close() throws Exception {
             if (collection != null) {
-                for (Configure<C> configure : collection) {
+                for (Configure<? super C> configure : collection) {
                     if (configure != null) {
                         configure.close();
                     }
@@ -126,23 +127,18 @@ public abstract class Invoker<C> {
     }
 
     public static abstract class Interceptor<C> implements Configure<C> {
-        protected abstract <R> R intercept(final Invocation<C> invocation) throws Exception;
+        protected abstract <R> R intercept(final Invocation<R, C> invocation) throws Exception;
 
-        private CodeFunction<C> plugin(final CodeFunction<C> plugin) {
-            return new CodeFunction<C>() {
-                @Override
-                public <R> R execute(C context) throws Exception {
-                    return intercept(new Invocation<>(plugin, context));
-                }
-            };
+        private <R> Callable<R> plugin(final Callable<R> plugin, C context) {
+            return () -> intercept(new Invocation<>(plugin, context));
         }
     }
 
-    public static final class Invocation<C> {
-        private final CodeFunction<C> codeFunction;
+    public static final class Invocation<R, C> {
+        private final Callable<R> codeFunction;
         private final C context;
 
-        private Invocation(CodeFunction<C> codeFunction, C context) {
+        private Invocation(Callable<R> codeFunction, C context) {
             this.codeFunction = codeFunction;
             this.context = context;
         }
@@ -151,8 +147,8 @@ public abstract class Invoker<C> {
             return context;
         }
 
-        public <R> R proceed() throws Exception {
-            return codeFunction.execute(context);
+        public R proceed() throws Exception {
+            return codeFunction.call();
         }
     }
 }
