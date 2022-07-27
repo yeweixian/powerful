@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Slf4j
-public abstract class AbstractInvoker<T, C extends InvokeContext<? extends T>, E extends Throwable> extends Invoker<T, C> {
+public abstract class AbstractInvoker<T, C extends InvokeContext<? extends T>, E extends Throwable> extends Invoker<C> {
 
     protected abstract E transformException(final C context, final Exception exception);
 
