@@ -3,6 +3,7 @@ package com.dangerye.powerful.communicate.http;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.dangerye.powerful.communicate.AbstractInvoker;
+import com.dangerye.powerful.communicate.InvokeContext;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
@@ -12,7 +13,6 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
 import java.util.Collection;
@@ -44,10 +44,10 @@ public final class HttpInvoker extends AbstractInvoker<Map<String, Object>, Http
         }
     };
 
-    private static final Interceptor<HttpContext> CALL_TIME_INTERCEPTOR = new Interceptor<HttpContext>() {
+    private static final Interceptor<InvokeContext<Map<String, Object>>> CALL_TIME_INTERCEPTOR = new Interceptor<InvokeContext<Map<String, Object>>>() {
         @Override
-        protected <R> R intercept(Invocation<HttpContext> invocation) throws Exception {
-            final HttpContext context = invocation.getContext();
+        protected <R> R intercept(Invocation<R, InvokeContext<Map<String, Object>>> invocation) throws Exception {
+            final InvokeContext<Map<String, Object>> context = invocation.getContext();
             final long beginTime = System.currentTimeMillis();
             try {
                 return invocation.proceed();
@@ -59,20 +59,20 @@ public final class HttpInvoker extends AbstractInvoker<Map<String, Object>, Http
         }
 
         @Override
-        public void configure(HttpContext context) {
+        public void configure(InvokeContext<Map<String, Object>> context) {
             System.out.println("configure : CALL_TIME_INTERCEPTOR");
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             System.out.println("close : CALL_TIME_INTERCEPTOR");
         }
     };
 
-    private static final Interceptor<HttpContext> CALL_LOG_INTERCEPTOR = new Interceptor<HttpContext>() {
+    private static final Interceptor<InvokeContext<Map<String, Object>>> CALL_LOG_INTERCEPTOR = new Interceptor<InvokeContext<Map<String, Object>>>() {
         @Override
-        protected <R> R intercept(Invocation<HttpContext> invocation) throws Exception {
-            final HttpContext context = invocation.getContext();
+        protected <R> R intercept(Invocation<R, InvokeContext<Map<String, Object>>> invocation) throws Exception {
+            final InvokeContext<Map<String, Object>> context = invocation.getContext();
             try {
                 final R result = invocation.proceed();
                 log.info("[CALL_LOG_INTERCEPTOR] msg= invokeEvent:{} - param:{}, result:{}",
@@ -90,12 +90,12 @@ public final class HttpInvoker extends AbstractInvoker<Map<String, Object>, Http
         }
 
         @Override
-        public void configure(HttpContext context) {
+        public void configure(InvokeContext<Map<String, Object>> context) {
             System.out.println("configure : CALL_LOG_INTERCEPTOR");
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             System.out.println("close : CALL_LOG_INTERCEPTOR");
         }
     };
@@ -108,7 +108,6 @@ public final class HttpInvoker extends AbstractInvoker<Map<String, Object>, Http
     @Override
     @SuppressWarnings("unchecked")
     protected <R> R coreCode(HttpContext context) throws Exception {
-        Args.notNull(context.getHttpRequest(), "HTTP request");
         try (CloseableHttpClient client = Optional.ofNullable(context.getHttpClient()).orElseGet(HTTP_CLIENT_SUPPLIER)) {
             ResponseHandler<String> handler = Optional.ofNullable(context.getResponseHandler()).orElse(DEFAULT_RESPONSE_HANDLER);
             return (R) client.execute(context.getHttpRequest(), handler);
@@ -116,7 +115,10 @@ public final class HttpInvoker extends AbstractInvoker<Map<String, Object>, Http
     }
 
     @Override
-    protected Collection<Interceptor<HttpContext>> invokeInterceptors(HttpContext context) {
-        return Lists.newArrayList(CALL_TIME_INTERCEPTOR, CALL_LOG_INTERCEPTOR);
+    protected Collection<Interceptor<? super HttpContext>> invokeInterceptors(HttpContext context) {
+        final Collection<Interceptor<? super HttpContext>> result = Lists.newArrayList();
+        result.add(CALL_TIME_INTERCEPTOR);
+        result.add(CALL_LOG_INTERCEPTOR);
+        return result;
     }
 }
