@@ -7,12 +7,14 @@ import com.dangerye.powerful.communicate.Invoker;
 import com.google.common.collect.Lists;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 
 import java.util.Collection;
 import java.util.List;
 
+@Slf4j
 public class CollectionInvokerTest {
 
     private static final TestCollectionInvoker testCollectionInvoker = new TestCollectionInvoker();
@@ -45,7 +47,7 @@ public class CollectionInvokerTest {
     public static final class TestCollectionInvoker extends AbstractCollectionInvoker<Item, TestCollectionContext> {
         @Override
         protected Collection<Interceptor<? super TestCollectionContext>> invokeInterceptors(TestCollectionContext context) {
-            return Lists.newArrayList(new TestCollectionInterceptor());
+            return Lists.newArrayList(new TestCollectionInterceptor(), new TestCollectionInterceptor1());
         }
 
         @Override
@@ -74,6 +76,31 @@ public class CollectionInvokerTest {
         @Override
         public void close() {
             System.out.println("close : TestCollectionInterceptor");
+        }
+    }
+
+    public static final class TestCollectionInterceptor1 extends Invoker.Interceptor<InvokeContext<Collection<Item>>> {
+        @Override
+        public void configure(InvokeContext<Collection<Item>> context) {
+            System.out.println("configure : TestCollectionInterceptor1");
+        }
+
+        @Override
+        public void close() {
+            System.out.println("close : TestCollectionInterceptor1");
+        }
+
+        @Override
+        protected <R> R intercept(Invoker.Invocation<R, InvokeContext<Collection<Item>>> invocation) throws Exception {
+            final InvokeContext<Collection<Item>> context = invocation.getContext();
+            final long beginTime = System.currentTimeMillis();
+            try {
+                return invocation.proceed();
+            } finally {
+                final long endTime = System.currentTimeMillis();
+                log.info("[TestCollectionInterceptor1] msg= invokeEvent:{} - beginTime:{}ms, endTime:{}ms, runTime:{}",
+                        context.getInvokeEvent(), beginTime, endTime, (endTime - beginTime));
+            }
         }
     }
 
