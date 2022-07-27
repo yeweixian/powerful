@@ -42,26 +42,21 @@ public class CollectionInvokerTest {
         private String afterSum;
     }
 
-    public static final class TestCollectionInvoker extends AbstractCollectionInvoker<Item, Collection<Item>, TestCollectionContext> {
+    public static final class TestCollectionInvoker extends AbstractCollectionInvoker<Item, TestCollectionContext> {
         @Override
-        protected Collection<Interceptor<TestCollectionContext>> invokeInterceptors(TestCollectionContext context) {
+        protected Collection<Interceptor<? super TestCollectionContext>> invokeInterceptors(TestCollectionContext context) {
             return Lists.newArrayList(new TestCollectionInterceptor());
         }
 
         @Override
-        protected Collection<CollectionFilter<Item, TestCollectionContext>> invokeCollectionFilters(TestCollectionContext context) {
+        protected Collection<CollectionFilter<? super Item, ? super TestCollectionContext>> invokeCollectionFilters(TestCollectionContext context) {
             return Lists.newArrayList(new TestCollectionFilter(), new TestCollectionFilter1());
         }
     }
 
     public static final class TestCollectionInterceptor extends Invoker.Interceptor<TestCollectionContext> {
         @Override
-        public void configure(TestCollectionContext context) {
-            System.out.println("configure : TestCollectionInterceptor");
-        }
-
-        @Override
-        protected <R> R intercept(Invoker.Invocation<TestCollectionContext> invocation) throws Exception {
+        protected <R> R intercept(Invoker.Invocation<R, TestCollectionContext> invocation) throws Exception {
             final TestCollectionContext context = invocation.getContext();
             final int beforeSum = context.getTarget().stream().mapToInt(Item::getValue).sum();
             context.setBeforeSum(String.valueOf(beforeSum));
@@ -72,7 +67,12 @@ public class CollectionInvokerTest {
         }
 
         @Override
-        public void close() throws Exception {
+        public void configure(TestCollectionContext context) {
+            System.out.println("configure : TestCollectionInterceptor");
+        }
+
+        @Override
+        public void close() {
             System.out.println("close : TestCollectionInterceptor");
         }
     }
