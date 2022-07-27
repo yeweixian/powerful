@@ -19,7 +19,7 @@ public abstract class Invoker<C> {
                 //Assert.notNull(context.getTarget(), "target must not be null");
                 //Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
                 final Collection<Interceptor<? super C>> interceptors = invokeInterceptors(context);
-                try (CloseableContext<? super C> closeableContext = new CloseableContext<>(getConfigures(interceptors))) {
+                try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(interceptors))) {
                     closeableContext.configure(context);
                     final Callable<R> core = () -> coreCode(context);
                     final Callable<R> proxy = getProxy(core, interceptors, context);
