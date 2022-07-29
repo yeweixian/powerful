@@ -135,11 +135,11 @@ public abstract class Invoker<C> {
     }
 
     public static final class Invocation<R, C> {
-        private final Callable<R> codeFunction;
+        private final Callable<R> callable;
         private final C context;
 
-        private Invocation(Callable<R> codeFunction, C context) {
-            this.codeFunction = codeFunction;
+        private Invocation(Callable<R> callable, C context) {
+            this.callable = callable;
             this.context = context;
         }
 
@@ -148,7 +148,7 @@ public abstract class Invoker<C> {
         }
 
         public R proceed() throws Exception {
-            return codeFunction.call();
+            return callable.call();
         }
     }
 }
