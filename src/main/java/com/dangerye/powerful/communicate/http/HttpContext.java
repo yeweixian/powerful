@@ -1,6 +1,6 @@
 package com.dangerye.powerful.communicate.http;
 
-import com.dangerye.powerful.communicate.InvokeContext;
+import com.dangerye.powerful.communicate.Invoker;
 import com.google.common.collect.Maps;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -10,7 +10,7 @@ import org.apache.http.util.Args;
 import java.util.Map;
 import java.util.Objects;
 
-public final class HttpContext implements InvokeContext<Map<String, Object>> {
+public final class HttpContext implements Invoker.CallContext {
     private final String invokeEvent;
     private final CloseableHttpClient httpClient;
     private final ResponseHandler<String> responseHandler;
@@ -50,7 +50,7 @@ public final class HttpContext implements InvokeContext<Map<String, Object>> {
     }
 
     @Override
-    public Map<String, Object> getTarget() {
+    public Map<String, Object> getParamMap() {
         if (paramMap != null) {
             return paramMap;
         }
