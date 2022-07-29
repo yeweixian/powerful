@@ -5,6 +5,7 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public abstract class Invoker<C> {
@@ -15,9 +16,6 @@ public abstract class Invoker<C> {
         this.codeFunction = new CodeFunction<C>() {
             @Override
             public <R> R execute(C context) throws Exception {
-                //Assert.notNull(context, "context must not be null");
-                //Assert.notNull(context.getTarget(), "target must not be null");
-                //Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
                 final Collection<Interceptor<? super C>> interceptors = invokeInterceptors(context);
                 try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(interceptors))) {
                     closeableContext.configure(context);
@@ -60,6 +58,18 @@ public abstract class Invoker<C> {
     protected abstract <R> R coreCode(final C context) throws Exception;
 
     protected abstract Collection<Interceptor<? super C>> invokeInterceptors(final C context);
+
+    public interface InvokeContext {
+        String getInvokeEvent();
+    }
+
+    public interface CallContext extends InvokeContext {
+        Map<String, Object> getParamMap();
+    }
+
+    public interface CollectionContext<I> extends InvokeContext {
+        Collection<? extends I> getCollection();
+    }
 
     public interface Configure<C> extends AutoCloseable {
         void configure(C context);
