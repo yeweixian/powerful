@@ -7,20 +7,20 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Slf4j
-public abstract class AbstractInvoker<T, C extends InvokeContext<? extends T>, E extends Throwable> extends Invoker<C> {
+public abstract class AbstractInvoker<C extends Invoker.CallContext, E extends Throwable> extends Invoker<C> {
 
     protected abstract E transformException(final C context, final Exception exception);
 
     private void writeLog(C context, Exception exception) {
-        if (log.isWarnEnabled()) {
+        if (log.isDebugEnabled()) {
             final String invokeEvent = context.getInvokeEvent();
-            log.warn("[Invoker.Fail] msg = invokeEvent:{} invoker fail. ", invokeEvent, exception);
+            log.debug("[Invoker.Fail] msg = invokeEvent:{} invoker fail. ", invokeEvent, exception);
         }
     }
 
     public final <R> R get(final C context) {
         Assert.notNull(context, "context must not be null");
-        Assert.notNull(context.getTarget(), "target must not be null");
+        Assert.notNull(context.getParamMap(), "paramMap must not be null");
         Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
         try {
             return super.execute(context);
@@ -32,7 +32,7 @@ public abstract class AbstractInvoker<T, C extends InvokeContext<? extends T>, E
 
     public final <R> R get(final C context, final Consumer<E> consumer) {
         Assert.notNull(context, "context must not be null");
-        Assert.notNull(context.getTarget(), "target must not be null");
+        Assert.notNull(context.getParamMap(), "paramMap must not be null");
         Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
         try {
             return super.execute(context);
@@ -48,7 +48,7 @@ public abstract class AbstractInvoker<T, C extends InvokeContext<? extends T>, E
 
     public final <R, TE extends Throwable> R getOrThrow(final C context, final Function<E, ? extends TE> function) throws TE {
         Assert.notNull(context, "context must not be null");
-        Assert.notNull(context.getTarget(), "target must not be null");
+        Assert.notNull(context.getParamMap(), "paramMap must not be null");
         Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
         try {
             return super.execute(context);
@@ -61,7 +61,7 @@ public abstract class AbstractInvoker<T, C extends InvokeContext<? extends T>, E
 
     public final <R, TE extends Throwable> R getElseThrow(final C context, final Function<E, ? extends TE> function) throws TE {
         Assert.notNull(context, "context must not be null");
-        Assert.notNull(context.getTarget(), "target must not be null");
+        Assert.notNull(context.getParamMap(), "paramMap must not be null");
         Assert.notNull(context.getInvokeEvent(), "invokeEvent must not be null");
         R result = null;
         try {
