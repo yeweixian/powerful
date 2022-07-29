@@ -68,7 +68,7 @@ public abstract class Invoker<C> {
     }
 
     public interface CollectionContext<I> extends InvokeContext {
-        Collection<? extends I> getCollection();
+        Collection<I> getCollection();
     }
 
     public interface Configure<C> extends AutoCloseable {
