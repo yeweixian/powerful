@@ -22,12 +22,12 @@ public abstract class AbstractCollectionInvoker<I, C extends Invoker.CollectionC
 
     @Override
     protected <R> R coreCode(C context) throws Exception {
-        final Collection<? extends I> target = context.getCollection();
+        final Collection<I> collection = context.getCollection();
         final Collection<CollectionFilter<? super I, ? super C>> collectionFilters = invokeCollectionFilters(context);
         try (CloseableContext<C> closeableContext = new CloseableContext<>(getConfigures(collectionFilters))) {
             closeableContext.configure(context);
             final Predicate<I> allPredicate = PredicateUtils.allPredicate(collectionFilters);
-            CollectionUtils.filter(target, allPredicate);
+            CollectionUtils.filter(collection, allPredicate);
         }
         return null;
     }
