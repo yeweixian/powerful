@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Type;
@@ -36,6 +37,9 @@ public final class UniversalContext {
     }
 
     public final Map<String, String> parseParam(String param) {
+        if (StringUtils.isBlank(param)) {
+            return null;
+        }
         try {
             return JSON.parseObject(param, type);
         } catch (Exception e) {
@@ -44,6 +48,9 @@ public final class UniversalContext {
     }
 
     public final <P> P parseParam(String param, Class<P> clazz) {
+        if (StringUtils.isBlank(param)) {
+            return null;
+        }
         try {
             return JSON.parseObject(param, clazz);
         } catch (Exception e) {
