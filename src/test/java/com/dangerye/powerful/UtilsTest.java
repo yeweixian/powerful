@@ -9,7 +9,6 @@ import com.dangerye.powerful.utils.CharFilterUtils;
 import com.dangerye.powerful.utils.Des3Utils;
 import com.dangerye.powerful.utils.RsaUtils;
 import com.dangerye.powerful.utils.SecurityUtils;
-import com.google.gson.Gson;
 import lombok.Data;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -26,7 +25,7 @@ import java.util.Set;
 public class UtilsTest {
 
     private static final int test1 = getRandomInt();
-    private static int test2 = getRandomInt();
+    private static final int test2 = getRandomInt();
 
     private static int getRandomInt() {
         return RandomUtils.nextInt(0, 10000);
@@ -152,10 +151,6 @@ public class UtilsTest {
         testDemo.setName("dangerye");
         testDemo.setExtend(map1);
 
-        System.out.println((new Gson()).toJson(CollectionBuilder.hashMapBuilder()
-                .put("extend", testDemo.getExtend())
-                .put("user", testDemo)
-                .build()));
         System.out.println(JSON.toJSONString(CollectionBuilder.hashMapBuilder()
                 .put("extend", testDemo.getExtend())
                 .put("user", testDemo)
