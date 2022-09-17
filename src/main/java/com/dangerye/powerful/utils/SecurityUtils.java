@@ -13,7 +13,9 @@ import java.util.Map;
 public final class SecurityUtils {
 
     public static String encrypt(final String message, final String secretKey) {
-        if (StringUtils.isBlank(message)) return null;
+        if (StringUtils.isBlank(message)) {
+            return null;
+        }
         String randomStr = String.valueOf(RandomUtils.nextInt(10000, 99999));
         char[] randomMD5 = DigestUtils.md5Hex(randomStr).toCharArray();
         char[] secretMD5 = DigestUtils.md5Hex(secretKey).toCharArray();
@@ -39,7 +41,9 @@ public final class SecurityUtils {
     }
 
     public static String decrypt(final String ciphertext, final String secretKey) {
-        if (StringUtils.isBlank(ciphertext)) return null;
+        if (StringUtils.isBlank(ciphertext)) {
+            return null;
+        }
         char[] secretMD5 = DigestUtils.md5Hex(secretKey).toCharArray();
 
         StringBuilder decrypt2 = new StringBuilder();
@@ -85,20 +89,24 @@ public final class SecurityUtils {
     }
 
     public static class TestBuilder {
-        private String message;
+        private final String message;
         private String ciphertext;
         private String result;
-        private Map<String, Object> extendMap;
+        private final Map<String, Object> extendMap;
         private Exception exception;
 
         private TestBuilder(String message, Map<String, Object> extendMap) {
-            if (StringUtils.isBlank(message)) throw new IllegalArgumentException("Message must not be blank.");
+            if (StringUtils.isBlank(message)) {
+                throw new IllegalArgumentException("Message must not be blank.");
+            }
             this.message = message;
             this.extendMap = extendMap;
         }
 
         public TestBuilder encrypt(EncryptFunction function) {
-            if (this.exception != null) return this;
+            if (this.exception != null) {
+                return this;
+            }
             try {
                 this.ciphertext = function.encrypt(this.message, this.extendMap);
             } catch (Exception e) {
@@ -108,7 +116,9 @@ public final class SecurityUtils {
         }
 
         public TestBuilder decrypt(DecryptFunction function) {
-            if (this.exception != null) return this;
+            if (this.exception != null) {
+                return this;
+            }
             try {
                 this.result = function.decrypt(this.ciphertext, this.extendMap);
             } catch (Exception e) {
@@ -118,7 +128,9 @@ public final class SecurityUtils {
         }
 
         public TestBuilder encrypt(EncryptFunctionWithoutExtend function) {
-            if (this.exception != null) return this;
+            if (this.exception != null) {
+                return this;
+            }
             try {
                 this.ciphertext = function.encrypt(this.message);
             } catch (Exception e) {
@@ -128,7 +140,9 @@ public final class SecurityUtils {
         }
 
         public TestBuilder decrypt(DecryptFunctionWithoutExtend function) {
-            if (this.exception != null) return this;
+            if (this.exception != null) {
+                return this;
+            }
             try {
                 this.result = function.decrypt(this.ciphertext);
             } catch (Exception e) {

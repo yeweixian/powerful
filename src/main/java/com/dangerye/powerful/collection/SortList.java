@@ -13,10 +13,12 @@ public class SortList<E> {
     private transient Node<E> first;
 
     public SortList(int top, CompareFunction<E> compareFunction) {
-        if (top <= 0)
+        if (top <= 0) {
             throw new IllegalArgumentException("top must better than zero");
-        if (compareFunction == null)
+        }
+        if (compareFunction == null) {
             throw new IllegalArgumentException("compareFunction must not be null");
+        }
         this.top = top;
         this.compareFunction = compareFunction;
     }
@@ -28,13 +30,17 @@ public class SortList<E> {
     }
 
     private void addToList(final List<E> list, final Node<E> node) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
         list.add(node.item);
         addToList(list, node.next);
     }
 
     public synchronized void add(final E e) {
-        if (e == null) throw new NullPointerException();
+        if (e == null) {
+            throw new NullPointerException();
+        }
         final Node<E> newNode = new Node<>(e, null);
         final Node<E> nextNode = first;
         if (nextNode == null) {

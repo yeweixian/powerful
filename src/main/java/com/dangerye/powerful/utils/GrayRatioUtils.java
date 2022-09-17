@@ -19,7 +19,9 @@ public final class GrayRatioUtils {
         } catch (Exception e) {
             grayRatio = null;
         }
-        if (grayRatio == null) return false;
+        if (grayRatio == null) {
+            return false;
+        }
 
         if (!CollectionUtils.isEmpty(grayRatio.getWhiteList())) {
             if (grayRatio.getWhiteList().contains(target)) {
@@ -28,8 +30,12 @@ public final class GrayRatioUtils {
         }
 
         int ratio = grayRatio.getRatio();
-        if (ratio >= 100) return true;
-        if (ratio <= 0) return false;
+        if (ratio >= 100) {
+            return true;
+        }
+        if (ratio <= 0) {
+            return false;
+        }
 
         int hash = getHashCode(businessCode, target);
         return hash < ratio;

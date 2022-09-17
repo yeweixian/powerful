@@ -73,8 +73,12 @@ public final class LocalCacheUtils<T> {
         @Override
         public int compareTo(Node<T> o) {
             long l = this.expireTime - o.expireTime;
-            if (l > 0) return 1;
-            if (l < 0) return -1;
+            if (l > 0) {
+                return 1;
+            }
+            if (l < 0) {
+                return -1;
+            }
             return 0;
         }
     }

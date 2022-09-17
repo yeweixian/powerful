@@ -18,8 +18,12 @@ public class Ring<E> {
     }
 
     public E kill(int length) {
-        if (size == 0) return null;
-        if (size == 1) return unlink(first);
+        if (size == 0) {
+            return null;
+        }
+        if (size == 1) {
+            return unlink(first);
+        }
         int count = 1;
         Node<E> node = first;
         while (size > 1) {
@@ -41,10 +45,11 @@ public class Ring<E> {
 
     public void add(int index, E element) {
         checkPositionIndex(index);
-        if (index == size)
+        if (index == size) {
             linkLast(element);
-        else
+        } else {
             linkBefore(element, node(index));
+        }
     }
 
     public boolean addAll(Collection<? extends E> c) {
@@ -56,8 +61,9 @@ public class Ring<E> {
 
         Object[] a = c.toArray();
         int numNew = a.length;
-        if (numNew == 0)
+        if (numNew == 0) {
             return false;
+        }
 
         Node<E> pred, succ;
         if (index == size) {
@@ -71,10 +77,11 @@ public class Ring<E> {
         for (Object o : a) {
             @SuppressWarnings("unchecked") E e = (E) o;
             Node<E> newNode = new Node<>(pred, e, null);
-            if (pred == null)
+            if (pred == null) {
                 first = newNode;
-            else
+            } else {
                 pred.next = newNode;
+            }
             pred = newNode;
         }
 
@@ -93,10 +100,11 @@ public class Ring<E> {
         final Node<E> l = last;
         final Node<E> newNode = new Node<>(l, e, null);
         last = newNode;
-        if (l == null)
+        if (l == null) {
             first = newNode;
-        else
+        } else {
             l.next = newNode;
+        }
         size++;
     }
 
@@ -104,10 +112,11 @@ public class Ring<E> {
         final Node<E> pred = succ.prev;
         final Node<E> newNode = new Node<>(pred, e, succ);
         succ.prev = newNode;
-        if (pred == null)
+        if (pred == null) {
             first = newNode;
-        else
+        } else {
             pred.next = newNode;
+        }
         size++;
     }
 
@@ -136,17 +145,19 @@ public class Ring<E> {
     }
 
     private Node<E> node(int index) {
+        Node<E> x;
         if (index < (size >> 1)) {
-            Node<E> x = first;
-            for (int i = 0; i < index; i++)
+            x = first;
+            for (int i = 0; i < index; i++) {
                 x = x.next;
-            return x;
+            }
         } else {
-            Node<E> x = last;
-            for (int i = size - 1; i > index; i--)
+            x = last;
+            for (int i = size - 1; i > index; i--) {
                 x = x.prev;
-            return x;
+            }
         }
+        return x;
     }
 
     private String outOfBoundsMsg(int index) {
@@ -154,8 +165,9 @@ public class Ring<E> {
     }
 
     private void checkPositionIndex(int index) {
-        if (!isPositionIndex(index))
+        if (!isPositionIndex(index)) {
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+        }
     }
 
     private boolean isPositionIndex(int index) {
