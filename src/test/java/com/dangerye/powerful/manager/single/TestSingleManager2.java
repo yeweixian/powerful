@@ -2,6 +2,7 @@ package com.dangerye.powerful.manager.single;
 
 import com.dangerye.powerful.manager.core.SingleManager;
 import com.dangerye.powerful.manager.core.UniversalContext;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,7 @@ public class TestSingleManager2 extends SingleManager {
         return universalContext.returnSuccessResponse(single2Param);
     }
 
+    @Data
     public static class Single2Param {
         private String param2;
     }

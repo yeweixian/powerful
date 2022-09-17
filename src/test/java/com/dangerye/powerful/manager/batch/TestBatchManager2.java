@@ -2,6 +2,7 @@ package com.dangerye.powerful.manager.batch;
 
 import com.dangerye.powerful.manager.core.BatchManager;
 import com.dangerye.powerful.manager.core.UniversalContext;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,7 @@ public class TestBatchManager2 extends BatchManager {
         return batch2Data;
     }
 
+    @Data
     public static class Batch2Data {
         private String msg;
     }
