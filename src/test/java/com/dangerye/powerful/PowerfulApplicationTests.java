@@ -1,8 +1,9 @@
 package com.dangerye.powerful;
 
 import com.alibaba.fastjson.JSON;
-import com.dangerye.powerful.communicate.Invoker;
 import com.dangerye.powerful.communicate.ThreadContext;
+import com.dangerye.powerful.concurrent.InvokeDefaultContext;
+import com.dangerye.powerful.concurrent.Invoker;
 import com.dangerye.powerful.manager.UniversalManager;
 import com.dangerye.powerful.service.TestService;
 import com.dangerye.powerful.utils.IpUtils;
@@ -30,7 +31,7 @@ import java.util.Optional;
 public class PowerfulApplicationTests {
 
     @Autowired
-    private final Map<String, Invoker<Invoker.InvokeContext>> invokerMap = new HashMap<>();
+    private final Map<String, Invoker<InvokeDefaultContext>> invokerMap = new HashMap<>();
     @Autowired
     private UniversalManager universalManager;
 
@@ -62,9 +63,9 @@ public class PowerfulApplicationTests {
 
     @Test
     public void testAutowiredMap() {
-        for (Map.Entry<String, Invoker<Invoker.InvokeContext>> entry : invokerMap.entrySet()) {
+        for (Map.Entry<String, Invoker<InvokeDefaultContext>> entry : invokerMap.entrySet()) {
             final String entryKey = entry.getKey();
-            final Invoker<Invoker.InvokeContext> entryValue = entry.getValue();
+            final Invoker<InvokeDefaultContext> entryValue = entry.getValue();
             System.out.println("entryKey: " + entryKey);
             System.out.println("entryValue: " + entryValue);
         }
