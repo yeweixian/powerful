@@ -1,7 +1,8 @@
 package com.dangerye.powerful.communicate.http;
 
-import com.dangerye.powerful.communicate.AbstractInvoker;
-import com.dangerye.powerful.communicate.InvokeInterceptorPool;
+import com.dangerye.powerful.concurrent.AbstractDefaultInvoker;
+import com.dangerye.powerful.concurrent.InvokeInterceptor;
+import com.dangerye.powerful.concurrent.InvokeInterceptorPool;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
@@ -18,7 +19,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 @Slf4j
-public final class HttpInvoker extends AbstractInvoker<HttpContext, Exception> {
+public final class HttpInvoker extends AbstractDefaultInvoker<HttpContext, Exception> {
 
     private static final Supplier<CloseableHttpClient> HTTP_CLIENT_SUPPLIER = () -> {
         RequestConfig requestConfig = RequestConfig.custom()
@@ -42,6 +43,10 @@ public final class HttpInvoker extends AbstractInvoker<HttpContext, Exception> {
     };
 
     @Override
+    protected void increaseLog(HttpContext context, Exception exception) {
+    }
+
+    @Override
     protected Exception transformException(HttpContext context, Exception exception) {
         return exception;
     }
@@ -56,10 +61,10 @@ public final class HttpInvoker extends AbstractInvoker<HttpContext, Exception> {
     }
 
     @Override
-    protected Collection<Interceptor<? super HttpContext>> invokeInterceptors(HttpContext context) {
-        final Collection<Interceptor<? super HttpContext>> result = Lists.newArrayList();
-        result.add(InvokeInterceptorPool.CALL_TIME_INTERCEPTOR);
-        result.add(InvokeInterceptorPool.CALL_LOG_INTERCEPTOR);
-        return result;
+    protected Collection<InvokeInterceptor<? super HttpContext>> invokeInterceptors(HttpContext context) {
+        final Collection<InvokeInterceptor<? super HttpContext>> collection = Lists.newArrayList();
+        collection.add(InvokeInterceptorPool.DEFAULT_INVOKE_TIME_INTERCEPTOR);
+        collection.add(InvokeInterceptorPool.INVOKE_VISIT_LOG_INTERCEPTOR);
+        return collection;
     }
 }

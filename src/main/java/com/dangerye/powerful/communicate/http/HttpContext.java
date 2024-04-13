@@ -1,6 +1,6 @@
 package com.dangerye.powerful.communicate.http;
 
-import com.dangerye.powerful.communicate.Invoker;
+import com.dangerye.powerful.concurrent.InvokeVisitContext;
 import com.google.common.collect.Maps;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -10,19 +10,19 @@ import org.apache.http.util.Args;
 import java.util.Map;
 import java.util.Objects;
 
-public final class HttpContext implements Invoker.CallContext {
-    private final String invokeEvent;
+public final class HttpContext implements InvokeVisitContext {
+    private final String invokeSign;
     private final CloseableHttpClient httpClient;
     private final ResponseHandler<String> responseHandler;
     private final HttpUriRequest httpRequest;
     private Map<String, Object> paramMap;
 
-    private HttpContext(String invokeEvent,
+    private HttpContext(String invokeSign,
                         CloseableHttpClient httpClient,
                         ResponseHandler<String> responseHandler,
                         HttpUriRequest httpRequest) {
         Args.notNull(httpRequest, "HTTP request");
-        this.invokeEvent = invokeEvent;
+        this.invokeSign = invokeSign;
         this.httpClient = httpClient;
         this.responseHandler = responseHandler;
         this.httpRequest = httpRequest;
@@ -45,8 +45,8 @@ public final class HttpContext implements Invoker.CallContext {
     }
 
     @Override
-    public String getInvokeEvent() {
-        return invokeEvent;
+    public String getInvokeSign() {
+        return invokeSign;
     }
 
     @Override
@@ -65,7 +65,7 @@ public final class HttpContext implements Invoker.CallContext {
     }
 
     public static class HttpContextBuilder {
-        private String invokeEvent;
+        private String invokeSign;
         private CloseableHttpClient httpClient;
         private ResponseHandler<String> responseHandler;
         private HttpUriRequest httpRequest;
@@ -73,8 +73,8 @@ public final class HttpContext implements Invoker.CallContext {
         private HttpContextBuilder() {
         }
 
-        public HttpContextBuilder invokeEvent(String invokeEvent) {
-            this.invokeEvent = invokeEvent;
+        public HttpContextBuilder invokeSign(String invokeSign) {
+            this.invokeSign = invokeSign;
             return this;
         }
 
@@ -94,7 +94,7 @@ public final class HttpContext implements Invoker.CallContext {
         }
 
         public HttpContext build() {
-            return new HttpContext(invokeEvent,
+            return new HttpContext(invokeSign,
                     httpClient,
                     responseHandler,
                     httpRequest);
