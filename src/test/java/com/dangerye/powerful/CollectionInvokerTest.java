@@ -117,9 +117,9 @@ public class CollectionInvokerTest {
         @Override
         protected Collection<InvokeInterceptor<? super TestCollectionContext>> invokeInterceptors(TestCollectionContext context) {
             final Collection<InvokeInterceptor<? super TestCollectionContext>> collection = new ArrayList<>();
-            collection.add(InvokeInterceptorPool.DEFAULT_INVOKE_TIME_INTERCEPTOR);
-            collection.add(new TestCollectionInitInterceptor());
             collection.add(new TestCollectionSumInterceptor());
+            collection.add(new TestCollectionInitInterceptor());
+            collection.add(InvokeInterceptorPool.DEFAULT_INVOKE_TIME_INTERCEPTOR);
             return collection;
         }
 
